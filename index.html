@@ -61,6 +61,16 @@ h3{font-size:14px;margin:18px 0 8px;color:var(--mut);text-transform:uppercase;le
 .s-New{background:#eef1ef;color:#46524b}
 .s-NotReachable{background:#fdeee2;color:#b45309}
 .s-NotAnswering{background:#fff1d6;color:#9a6200}
+.s-WhatsApp{background:#e3f7ea;color:#128c4a}
+.watpl{display:block;text-decoration:none;color:var(--ink);border:1px solid #cfe6d9;background:#fff;border-radius:10px;padding:9px 11px;margin-top:8px}
+.watpl:hover{background:var(--gl2)}
+.watpl .sub{margin-top:3px;white-space:normal}
+.target{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.target .track{background:#eef2f0;border-radius:8px;height:14px;overflow:hidden;margin-top:8px}
+.target .fill{background:var(--g);height:100%;border-radius:8px}
+.target.hit .fill{background:var(--gold)}
+.trow{display:grid;grid-template-columns:110px 1fr 70px;gap:10px;align-items:center;margin:6px 0;font-size:13px}
+.trow .track{margin-top:0;height:10px}
 .s-Callback{background:#e4f0fb;color:#1d5f99}
 .s-Interested{background:var(--gl);color:var(--g2)}
 .s-AppointmentFixed{background:var(--goldl);color:#8a5d00}
@@ -249,7 +259,13 @@ const pill = s => `<span class="pill ${sCls(s)}">${esc(s||'New')}</span>`;
 const isClosed = l => CLOSED.includes(l.status);
 const isAdmin = () => S.me && S.me.role === 'admin';
 const telLink = p => 'tel:' + String(p||'').replace(/[^\d+]/g,'');
-function waLink(p){ let d=String(p||'').replace(/\D/g,''); if(d.length===10) d='91'+d; return HTTPS+'wa.me/'+d; }
+function waLink(p, text){ let d=String(p||'').replace(/\D/g,''); if(d.length===10) d='91'+d; return HTTPS+'wa.me/'+d+(text?'?text='+encodeURIComponent(text):''); }
+function fmtLong(s){ if(!s) return ''; const [y,m,dd]=dpart(s).split('-'); const t=tpart(s); return (+dd)+' '+MON[+m-1]+(t?' at '+fmtT(t):''); }
+function fillT(text, l){ return String(text||'')
+  .replace(/\{name\}/g, l.name || 'Sir/Madam').replace(/\{me\}/g, S.me ? S.me.name : '')
+  .replace(/\{product\}/g, l.product || 'your requirement').replace(/\{appt\}/g, l.appointment ? fmtLong(l.appointment) : 'the agreed time'); }
+function myTarget(name){ const u=S.users.find(x=>x.name===name); return u ? (+u.target||0) : 0; }
+function callsOn(name, day){ return S.acts.filter(a=>isCall(a) && a.by===name && dpart(a.at)===day).length; }
 function toast(msg, err){ const t=$('#toast'); t.textContent=msg; t.className='toast'+(err?' err':''); clearTimeout(toast._t); toast._t=setTimeout(()=>t.className='toast hide', err?4500:2200); }
 function sources(){ const s=new Set(DEFAULT_SOURCES); S.leads.forEach(l=>l.source&&s.add(l.source)); return [...s]; }
 function callers(){ return S.users.filter(u=>u.active!=='no'); }
@@ -273,11 +289,12 @@ function call(action, payload){
   });
 }
 function index(){ S.byId = {}; S.leads.forEach(l => S.byId[l.id] = l); S.lastBy = {}; S.acts.forEach(noteAct); }
-function noteAct(a){ const p=S.lastBy[a.lead_id]; if(!p || a.at>=p.at) S.lastBy[a.lead_id]={by:a.by, at:a.at}; }
+const isCall = a => a.outcome !== 'WhatsApp';
+function noteAct(a){ if(!isCall(a)) return; const p=S.lastBy[a.lead_id]; if(!p || a.at>=p.at) S.lastBy[a.lead_id]={by:a.by, at:a.at}; }
 async function load(silent){
   try{
     const d = await call('load');
-    S.leads = d.leads; S.acts = d.acts; S.users = d.users; index();
+    S.leads = d.leads; S.acts = d.acts; S.users = d.users; S.templates = d.templates || []; index();
     if(!silent) render(); else if(!S.cur && !$('#modal').innerHTML) render();
   }catch(e){ toast(e.message, true); if(/log in|PIN/.test(e.message)) logout(); }
 }
@@ -370,7 +387,13 @@ function vToday(){
     const off=Math.floor(fresh.length*k/Math.max(1,cs.length)); fresh=fresh.slice(off).concat(fresh.slice(0,off));
   }
   const retry = open.filter(l=>l.status!=='New' && !l.next_followup && !(l.appointment && dpart(l.appointment)>=t)).sort((a,b)=>(a.last_called||'').localeCompare(b.last_called||''));
-  const myActs = S.acts.filter(a=>dpart(a.at)===t && (S.todayWho ? a.by===S.todayWho : (isAdmin() || a.by===S.me.name)));
+  const myActs = S.acts.filter(a=>isCall(a) && dpart(a.at)===t && (S.todayWho ? a.by===S.todayWho : (isAdmin() || a.by===S.me.name)));
+  const bar = (name, big) => { const tg=myTarget(name), n=callsOn(name,t), w=tg?Math.min(100,n*100/tg):0;
+    if(!tg) return big ? '' : `<div class="trow"><b>${esc(name)}</b><span class="sub">no target set</span><span class="num">${n} calls</span></div>`;
+    return big ? `<div class="target ${n>=tg?'hit':''}"><div style="display:flex;justify-content:space-between;align-items:baseline"><b>Today's target</b><span><b style="font-size:20px">${n}</b> / ${tg} calls ${n>=tg?'· 🎯 Target hit!':'· '+(tg-n)+' to go'}</span></div><div class="track"><div class="fill" style="width:${w}%"></div></div></div>`
+               : `<div class="trow"><b>${esc(name)}</b><div class="target ${n>=tg?'hit':''}" style="padding:0;border:0;margin:0"><div class="track"><div class="fill" style="width:${w}%"></div></div></div><span class="num">${n} / ${tg}</span></div>`; };
+  const who = S.todayWho || (isAdmin() ? '' : S.me.name);
+  const targetHtml = who ? bar(who, true) : (callers().some(u=>+u.target) ? `<div class="target"><b>Team targets today</b>${callers().filter(u=>u.role!=='admin'||+u.target).map(u=>bar(u.name,false)).join('')}</div>` : '');
   S.queue = [...overdue, ...due, ...retry, ...fresh].map(l=>l.id);
   const sec = (title, arr, kind, more) => `<h3>${title} (${arr.length})</h3>` +
     (arr.length ? `<div class="list">${arr.map(l=>card(l,kind)).join('')}</div>${more||''}` : `<div class="empty">Nothing here</div>`);
@@ -382,6 +405,7 @@ function vToday(){
       <button class="btn" onclick="openAdd()">+ Add lead</button>
       ${S.queue.length?`<button class="btn pri" onclick="openLead('${S.queue[0]}')">Start calling ▶</button>`:''}</div>
     </div>
+    ${targetHtml}
     <div class="tiles">
       <div class="tile green"><div class="n">${myActs.length}</div><div class="l">Calls done today</div></div>
       <div class="tile red"><div class="n">${overdue.length}</div><div class="l">Overdue follow-ups</div></div>
@@ -399,10 +423,15 @@ function vToday(){
 
 /* ================= LEAD DRAWER ================= */
 function openLead(id){
-  S.cur = id; S.editing = false; S.nameEdit = false;
+  S.cur = id; S.editing = false; S.nameEdit = false; S.waOpen = false;
   const l = S.byId[id];
   S.form = { outcome:'', comment:'', fuDate:'', fuTime:'11:00', apDate: dpart(l.appointment), apTime: tpart(l.appointment)||'11:00', quick:'' };
   drawLead();
+}
+function waSent(leadId, tid){
+  const tp=(S.templates||[]).find(x=>x.id===tid);
+  call('note',{lead_id:leadId, kind:'WhatsApp', comment: tp ? 'Sent: '+tp.title : 'Opened WhatsApp chat'})
+    .then(r=>{ S.acts.push(r.act); if(S.cur===leadId){ S.waOpen=false; drawLead(); } }).catch(()=>{});
 }
 function closeLead(){ S.cur=null; $('#modal').innerHTML=''; if(S.me) render(); }
 function drawLead(){
@@ -428,8 +457,12 @@ function drawLead(){
       <div class="acts">
         <a class="callbtn" href="${telLink(l.phone)}">${ICON_PHONE} ${esc(l.phone)}</a>
         ${l.alt_phone?`<a class="callbtn" href="${telLink(l.alt_phone)}">${ICON_PHONE} ${esc(l.alt_phone)}</a>`:''}
-        <a class="callbtn wabtn" href="${waLink(l.phone)}" target="_blank">${ICON_WA} WhatsApp</a>
+        <button class="callbtn wabtn" style="border:1px solid #b9d9c7;cursor:pointer" onclick="S.waOpen=!S.waOpen;drawLead()">${ICON_WA} WhatsApp ${S.waOpen?'▴':'▾'}</button>
       </div>
+      ${S.waOpen?`<div style="margin-top:6px;max-height:46vh;overflow:auto">
+        ${(S.templates||[]).map(tp=>`<a class="watpl" href="${waLink(l.phone, fillT(tp.text,l))}" target="_blank" onclick="waSent('${l.id}','${tp.id}')"><b>${esc(tp.title)}</b><div class="sub">${esc(fillT(tp.text,l))}</div></a>`).join('')}
+        <a class="watpl" href="${waLink(l.phone)}" target="_blank" onclick="waSent('${l.id}','')"><b>Blank message</b><div class="sub">Open WhatsApp chat and type your own</div></a>
+      </div>`:''}
     </div>
     <div class="dbody">
       <div class="box log">
@@ -673,7 +706,7 @@ function periodStart(p){ const d=new Date(); if(p==='today') return today(); if(
 function vDash(){
   const D=S.dash, t=today(), from=periodStart(D.period);
   const L=byWho(S.leads, D.who);
-  const A=S.acts.filter(a=>dpart(a.at)>=from && (!D.who || a.by===D.who));
+  const A=S.acts.filter(a=>isCall(a) && dpart(a.at)>=from && (!D.who || a.by===D.who));
   const uniq=(arr,o)=>new Set(arr.filter(a=>!o||o.includes(a.outcome)).map(a=>a.lead_id)).size;
   const connected=A.filter(a=>!NOT_CONNECTED.includes(a.outcome)).length;
   const open=L.filter(l=>!isClosed(l));
@@ -688,11 +721,12 @@ function vDash(){
   const src={}; L.forEach(l=>{ const s=src[l.source]=src[l.source]||{n:0,called:0,int:0,ap:0,conv:0};
     s.n++; if(+l.call_count) s.called++; if(l.status==='Interested') s.int++; if(l.status==='Appointment Fixed') s.ap++; if(l.status==='Converted') s.conv++; });
   // per caller
-  const callerRows = isAdmin() ? callers().map(u=>{ const ul=S.leads.filter(l=>l.assigned_to===u.name), ua=A.filter(a=>a.by===u.name);
-    return {n:u.name, leads:ul.length, calls:ua.length, conn:ua.filter(a=>!NOT_CONNECTED.includes(a.outcome)).length,
-      ap:uniq(ua,['Appointment Fixed']), conv:uniq(ua,['Converted']), od:ul.filter(l=>!isClosed(l)&&l.next_followup&&dpart(l.next_followup)<t).length}; }) : [];
+  const callerRows = callers().map(u=>{ const ul=S.leads.filter(l=>l.assigned_to===u.name), ua=S.acts.filter(a=>isCall(a) && dpart(a.at)>=from && a.by===u.name);
+    const perDay={}; ua.forEach(a=>{ const k=dpart(a.at); perDay[k]=(perDay[k]||0)+1; }); const tg=+u.target||0;
+    return {n:u.name, tg, hit: tg ? Object.values(perDay).filter(v=>v>=tg).length : null, days:Object.keys(perDay).length, leads:ul.length, calls:ua.length, conn:ua.filter(a=>!NOT_CONNECTED.includes(a.outcome)).length,
+      ap:uniq(ua,['Appointment Fixed']), conv:uniq(ua,['Converted']), od:ul.filter(l=>!isClosed(l)&&l.next_followup&&dpart(l.next_followup)<t).length}; }).filter(r=>r.calls||r.tg).sort((a,b)=>b.calls-a.calls||b.conv-a.conv);
   // calls by day (14)
-  const days=[]; for(let i=13;i>=0;i--){ const k=addDays(-i); days.push({k, n:S.acts.filter(a=>dpart(a.at)===k&&(!D.who||a.by===D.who)).length}); }
+  const days=[]; for(let i=13;i>=0;i--){ const k=addDays(-i); days.push({k, n:S.acts.filter(a=>isCall(a)&&dpart(a.at)===k&&(!D.who||a.by===D.who)).length}); }
   const dmax=Math.max(1,...days.map(d=>d.n));
   const upAppts=L.filter(l=>l.appointment&&dpart(l.appointment)>=t).sort((a,b)=>a.appointment.localeCompare(b.appointment)).slice(0,8);
   const pct=(a,b)=>b?Math.round(a*100/b)+'%':'—';
@@ -729,9 +763,10 @@ function vDash(){
       <table class="tbl" style="border:0"><thead><tr><th>Category</th><th class="num">Leads</th><th class="num">Called</th><th class="num">Called %</th><th class="num">Interested</th><th class="num">Appointments</th><th class="num">Converted</th></tr></thead>
       <tbody>${Object.entries(src).sort((a,b)=>b[1].n-a[1].n).map(([k,s])=>`<tr class="rowc" onclick="S.lf={q:'',source:'${esc(k)}',status:'',who:S.dash.who,fu:''};go('leads')"><td><b>${esc(k)}</b></td><td class="num">${s.n}</td><td class="num">${s.called}</td><td class="num">${pct(s.called,s.n)}</td><td class="num">${s.int}</td><td class="num">${s.ap}</td><td class="num">${s.conv}</td></tr>`).join('')||'<tr><td colspan="7" class="sub">No leads yet</td></tr>'}</tbody></table>
     </div>
-    ${isAdmin()?`<div class="panel" style="margin-top:14px;overflow-x:auto"><h4>Telecaller performance · ${{today:'today',week:'this week',month:'this month',all:'all time'}[D.period]}</h4>
-      <table class="tbl" style="border:0"><thead><tr><th>Telecaller</th><th class="num">Leads assigned</th><th class="num">Calls</th><th class="num">Connected</th><th class="num">Appointments</th><th class="num">Converted</th><th class="num">Overdue</th></tr></thead>
-      <tbody>${callerRows.map(r=>`<tr><td><b>${esc(r.n)}</b></td><td class="num">${r.leads}</td><td class="num">${r.calls}</td><td class="num">${r.conn}</td><td class="num">${r.ap}</td><td class="num">${r.conv}</td><td class="num" style="${r.od?'color:var(--red);font-weight:700':''}">${r.od}</td></tr>`).join('')}</tbody></table></div>`:''}
+    <div class="panel" style="margin-top:14px;overflow-x:auto"><h4>🏆 Leaderboard · ${{today:'today',week:'this week',month:'this month',all:'all time'}[D.period]}</h4>
+      <table class="tbl" style="border:0"><thead><tr><th>#</th><th>Telecaller</th><th class="num">Calls</th><th class="num">Connected</th><th class="num">Appointments</th><th class="num">Converted</th><th class="num">Daily target</th><th class="num">Days target hit</th>${isAdmin()?'<th class="num">Overdue</th>':''}</tr></thead>
+      <tbody>${callerRows.map((r,i)=>`<tr><td>${['🥇','🥈','🥉'][i]||i+1}</td><td><b>${esc(r.n)}</b></td><td class="num"><b>${r.calls}</b></td><td class="num">${r.conn}</td><td class="num">${r.ap}</td><td class="num">${r.conv}</td><td class="num">${r.tg||'—'}</td><td class="num">${r.hit==null?'—':r.hit+' / '+r.days}</td>${isAdmin()?`<td class="num" style="${r.od?'color:var(--red);font-weight:700':''}">${r.od}</td>`:''}</tr>`).join('')||'<tr><td colspan="9" class="sub">No calls in this period yet</td></tr>'}</tbody></table>
+    </div>
     <div class="panel" style="margin-top:14px"><h4>Upcoming appointments</h4>
       ${upAppts.length?upAppts.map(l=>`<div class="mini" onclick="openLead('${l.id}')"><div class="t" style="width:110px">${esc(fmtD(l.appointment))}</div><div style="flex:1"><b>${esc(l.name||l.phone)}</b> <span class="sub">· ${esc(l.phone)} · ${esc(l.source)}${isAdmin()&&l.assigned_to?' · '+esc(l.assigned_to):''}</span></div></div>`).join(''):'<div class="sub">No upcoming appointments</div>'}
     </div>`;
@@ -936,15 +971,34 @@ function vTeam(){
   $('#view').innerHTML=`
     <div class="bar" style="justify-content:space-between"><h2 style="margin:0">Team</h2><span class="row2col"><button class="btn" onclick="testDigest()">Send today's email now</button><button class="btn pri" onclick="userForm()">+ Add telecaller</button></span></div>
     <div class="sub" style="margin-bottom:10px">Each telecaller logs in with their name and PIN. All telecallers share all leads; each one's fresh-lead list starts at a different point so they don't call the same numbers.</div>
-    <table class="tbl"><thead><tr><th>Name</th><th>Role</th><th>PIN</th><th>Email (8 AM alert)</th><th class="num">Leads</th><th>Status</th><th></th></tr></thead>
-    <tbody>${S.users.map(u=>`<tr><td><b>${esc(u.name)}</b></td><td>${u.role==='admin'?'Admin':'Telecaller'}</td><td>${esc(u.pin)}</td><td>${u.email?esc(u.email):'<span class="sub">not set</span>'}</td>
+    <table class="tbl"><thead><tr><th>Name</th><th>Role</th><th>PIN</th><th>Email (8 AM alert)</th><th class="num">Daily target</th><th class="num">Leads</th><th>Status</th><th></th></tr></thead>
+    <tbody>${S.users.map(u=>`<tr><td><b>${esc(u.name)}</b></td><td>${u.role==='admin'?'Admin':'Telecaller'}</td><td>${esc(u.pin)}</td><td>${u.email?esc(u.email):'<span class="sub">not set</span>'}</td><td class="num">${+u.target?u.target+' calls':'<span class="sub">—</span>'}</td>
       <td class="num">${S.leads.filter(l=>l.assigned_to===u.name).length}</td><td>${u.active==='no'?'<span class="pill s-NotInterested">Disabled</span>':'<span class="pill s-Interested">Active</span>'}</td>
       <td><button class="btn sm" onclick="userForm('${u.id}')">Edit</button></td></tr>`).join('')}</tbody></table>
+    <div class="bar" style="justify-content:space-between;margin-top:22px"><h2 style="margin:0">WhatsApp messages</h2><button class="btn pri" onclick="tplForm()">+ Add message</button></div>
+    <div class="sub" style="margin-bottom:10px">Ready-made messages telecallers can send with one tap. Use <b>{name}</b> for the customer, <b>{me}</b> for the telecaller, <b>{product}</b>, and <b>{appt}</b> for the appointment date and time. Tamil text works too.</div>
+    <div class="list">${(S.templates||[]).map(tp=>`<div class="lead" style="cursor:default"><div class="body"><div class="nm">${esc(tp.title)}</div><div class="sub" style="white-space:normal;margin-top:3px">${esc(tp.text)}</div></div><button class="btn sm" onclick="tplForm('${tp.id}')">Edit</button></div>`).join('')||'<div class="empty">No messages yet</div>'}</div>
     ${S.users.some(u=>u.name==='Admin'&&u.pin==='1234')?'<div class="empty" style="margin-top:12px;color:var(--red)">Please change the default Admin PIN (1234). Click Edit on Admin.</div>':''}`;
 }
 async function testDigest(){
   try{ toast('Sending…'); const r=await call('testDigest'); toast(r); }
   catch(e){ toast(/permission|authoriz|MailApp/i.test(e.message)?'Email permission not given yet: run setupDailyEmail once in the Apps Script editor':e.message, true); }
+}
+function tplForm(id){
+  const tp=(S.templates||[]).find(x=>x.id===id)||{title:'',text:'',active:'yes'};
+  $('#modal').innerHTML=`<div class="ov" onclick="if(event.target===this)closeModal()"><div class="drawer"><div class="dhead"><button class="x" onclick="closeModal()">×</button><div style="font-size:18px;font-weight:700">${id?'Edit message':'New WhatsApp message'}</div></div>
+  <div class="dbody">
+    <div class="field"><label>Title (what telecallers see)</label><input type="text" id="tTitle" value="${esc(tp.title)}" placeholder="e.g. Tried calling" style="width:100%"></div>
+    <div class="field"><label>Message</label><textarea id="tText" style="min-height:140px">${esc(tp.text)}</textarea>
+      <div class="sub" style="margin-top:6px">Placeholders: {name} {me} {product} {appt}</div></div>
+    ${id?`<div class="field"><label>Status</label><select id="tActive" style="width:100%"><option value="yes">Active</option><option value="no">Hidden (delete)</option></select></div>`:''}
+    <button class="btn pri" onclick="saveTpl('${id||''}')">Save</button>
+  </div></div></div>`;
+}
+async function saveTpl(id){
+  const template={id:id||'', title:$('#tTitle').value.trim(), text:$('#tText').value.trim(), active: id ? $('#tActive').value : 'yes'};
+  try{ await call('saveTemplate',{template}); closeModal(); await load(); toast('Saved ✓'); }
+  catch(e){ toast(e.message,true); }
 }
 function userForm(id){
   const u=S.users.find(x=>x.id===id)||{name:'',pin:String(Math.floor(1000+Math.random()*9000)),role:'caller',active:'yes'};
@@ -952,6 +1006,7 @@ function userForm(id){
   <div class="dbody">
     <div class="field"><label>Name</label><input type="text" id="uName" value="${esc(u.name)}" style="width:100%"></div>
     <div class="field"><label>PIN</label><input type="text" id="uPin" value="${esc(u.pin)}" inputmode="numeric" style="width:100%"></div>
+    <div class="field"><label>Daily call target</label><input type="text" id="uTarget" inputmode="numeric" value="${esc(u.target||'')}" placeholder="e.g. 80 (leave empty for no target)" style="width:100%"></div>
     <div class="field"><label>Email for the 8 AM alert</label><input type="email" id="uEmail" value="${esc(u.email||'')}" placeholder="name@gmail.com" style="width:100%"></div>
     <div class="field"><label>Role</label><select id="uRole" style="width:100%"><option value="caller" ${u.role!=='admin'?'selected':''}>Telecaller</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option></select></div>
     <div class="field"><label>Status</label><select id="uAct" style="width:100%"><option value="yes" ${u.active!=='no'?'selected':''}>Active</option><option value="no" ${u.active==='no'?'selected':''}>Disabled</option></select></div>
@@ -959,7 +1014,7 @@ function userForm(id){
   </div></div></div>`;
 }
 async function saveUser(id){
-  const user={id:id||'', name:$('#uName').value.trim(), pin:$('#uPin').value.trim(), role:$('#uRole').value, active:$('#uAct').value, email:$('#uEmail').value.trim()};
+  const user={id:id||'', name:$('#uName').value.trim(), pin:$('#uPin').value.trim(), role:$('#uRole').value, active:$('#uAct').value, email:$('#uEmail').value.trim(), target:$('#uTarget').value.trim()};
   try{
     await call('saveUser',{user});
     if(id && S.me && S.users.find(x=>x.id===id).name===S.me.name){ S.cred={name:user.name,pin:user.pin}; S.me.name=user.name; store.set('fpcrm_cred',JSON.stringify(S.cred)); }
