@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finance Period CRM</title>
+<style>
+:root{
+  --g:#0d7a43; --g2:#0a5c33; --gl:#e8f5ee; --gl2:#f3faf6;
+  --gold:#c98a07; --goldl:#fdf4dc; --red:#c0392b; --redl:#fbeaea;
+  --ink:#1f2a24; --mut:#66746c; --line:#e3e8e5; --bg:#f6f8f7; --card:#fff;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+button,input,select,textarea{font:inherit}
+a{color:var(--g)}
+.hide{display:none!important}
+
+/* top bar */
+.top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
+.topin{display:flex;align-items:center;gap:12px;padding:10px 16px;max-width:1280px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px;white-space:nowrap}
+.logo{width:30px;height:30px;border-radius:8px;background:var(--g);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px}
+.tabs{display:flex;gap:4px;overflow-x:auto;flex:1;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:0;background:none;padding:8px 12px;border-radius:8px;cursor:pointer;color:var(--mut);font-weight:600;white-space:nowrap}
+.tab.on{background:var(--gl);color:var(--g2)}
+.who{display:flex;align-items:center;gap:8px;color:var(--mut);white-space:nowrap}
+.iconbtn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 9px;cursor:pointer;color:var(--ink)}
+.iconbtn:hover{background:var(--gl2)}
+
+main{max-width:1280px;margin:0 auto;padding:16px}
+h2{font-size:18px;margin:4px 0 12px}
+h3{font-size:14px;margin:18px 0 8px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.sub{color:var(--mut);font-size:13px}
+
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:6px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:default}
+.tile .n{font-size:26px;font-weight:700;line-height:1.1}
+.tile .l{color:var(--mut);font-size:12px;margin-top:2px}
+.tile.red .n{color:var(--red)} .tile.gold .n{color:var(--gold)} .tile.green .n{color:var(--g)}
+.tile.click{cursor:pointer}.tile.click:hover{border-color:var(--g)}
+
+/* lead cards */
+.list{display:grid;gap:8px}
+.lead{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;cursor:pointer}
+.lead:hover{border-color:#b9d9c7}
+.lead .body{flex:1;min-width:0}
+.lead .r1{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.lead .nm{font-weight:700}
+.lead .r2,.lead .r3{color:var(--mut);font-size:13px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lead.overdue{border-left:4px solid var(--red)}
+.lead.appt{border-left:4px solid var(--gold)}
+.callbtn{display:inline-flex;align-items:center;gap:6px;background:var(--g);color:#fff;border-radius:10px;padding:9px 12px;text-decoration:none;font-weight:600;white-space:nowrap}
+.callbtn:hover{background:var(--g2)}
+.empty{padding:14px;color:var(--mut);background:#fff;border:1px dashed var(--line);border-radius:12px;text-align:center}
+
+.badge{font-size:11px;padding:2px 7px;border-radius:20px;background:#eef1ef;color:#46524b;font-weight:600}
+.pill{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:700}
+.s-New{background:#eef1ef;color:#46524b}
+.s-NotReachable{background:#fdeee2;color:#b45309}
+.s-NotAnswering{background:#fff1d6;color:#9a6200}
+.s-Callback{background:#e4f0fb;color:#1d5f99}
+.s-Interested{background:var(--gl);color:var(--g2)}
+.s-AppointmentFixed{background:var(--goldl);color:#8a5d00}
+.s-Converted{background:var(--g);color:#fff}
+.s-NotInterested{background:var(--redl);color:var(--red)}
+.s-WrongNumber{background:#f1e9e9;color:#7d4b4b}
+
+/* buttons, inputs */
+.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;cursor:pointer;font-weight:600;color:var(--ink)}
+.btn:hover{background:var(--gl2)}
+.btn.pri{background:var(--g);border-color:var(--g);color:#fff}
+.btn.pri:hover{background:var(--g2)}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:default}
+input[type=text],input[type=tel],input[type=email],input[type=password],input[type=date],input[type=time],input[type=url],select,textarea{border:1px solid #cfd8d3;border-radius:9px;padding:8px 10px;background:#fff;color:var(--ink);max-width:100%}
+textarea{width:100%;min-height:70px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid #9fd3b6;border-color:var(--g)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.bar input[type=text]{flex:1;min-width:180px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid #cfd8d3;background:#fff;border-radius:20px;padding:7px 12px;cursor:pointer;font-weight:600;font-size:13px}
+.chip.on{background:var(--g);border-color:var(--g);color:#fff}
+.field{margin:12px 0}
+.field>label{display:block;font-size:12px;font-weight:700;color:var(--mut);margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em}
+
+/* table */
+.tbl{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tbl th{text-align:left;font-size:12px;color:var(--mut);background:#fafcfb;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:9px 10px;border-bottom:1px solid #eef2f0;vertical-align:top}
+.tbl tr.rowc{cursor:pointer}.tbl tr.rowc:hover td{background:var(--gl2)}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums}
+.clip{max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pager{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:10px;color:var(--mut)}
+
+/* drawer */
+.ov{position:fixed;inset:0;background:rgba(20,30,25,.35);z-index:50;display:flex;justify-content:flex-end}
+.drawer{background:#fff;width:min(560px,100%);height:100%;overflow-y:auto;box-shadow:-8px 0 30px rgba(0,0,0,.12)}
+.dhead{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:14px 16px;z-index:2}
+.dbody{padding:4px 16px 30px}
+.x{float:right;border:0;background:#f1f4f2;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:18px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.wabtn{background:#fff;color:var(--g2);border:1px solid #b9d9c7}
+.wabtn:hover{background:var(--gl)}
+.box{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:14px;background:#fff}
+.box.log{background:var(--gl2);border-color:#cfe6d9}
+.kv{display:grid;grid-template-columns:130px 1fr;gap:6px 10px;font-size:13px}
+.kv .k{color:var(--mut)}
+.kv .v{word-break:break-word}
+.tl{border-left:2px solid var(--line);margin-left:6px;padding-left:14px}
+.tl .it{position:relative;margin-bottom:12px}
+.tl .it:before{content:"";position:absolute;left:-20px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--g)}
+.tl .meta{font-size:12px;color:var(--mut)}
+.row2col{display:flex;gap:8px;flex-wrap:wrap}
+
+/* calendar */
+.calhead{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.calhead .mo{font-size:18px;font-weight:700;min-width:170px;text-align:center}
+.calwrap{display:grid;grid-template-columns:1fr 340px;gap:14px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .dow{font-size:11px;color:var(--mut);font-weight:700;text-align:center;padding:4px}
+.cal .d{background:#fff;border:1px solid var(--line);border-radius:10px;min-height:84px;padding:6px;cursor:pointer;display:flex;flex-direction:column;gap:3px}
+.cal .d:hover{border-color:var(--g)}
+.cal .d.out{opacity:.4}
+.cal .d.today{border:2px solid var(--g)}
+.cal .d.sel{background:var(--gl)}
+.cal .dn{font-weight:700;font-size:13px}
+.cal .ev{font-size:11px;border-radius:6px;padding:2px 5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.fu{background:var(--gl);color:var(--g2)}
+.ev.ap{background:var(--goldl);color:#8a5d00}
+.ev.od{background:var(--redl);color:var(--red)}
+.daypanel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;align-self:start;position:sticky;top:70px;max-height:calc(100vh - 90px);overflow:auto}
+.mini{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #eef2f0;cursor:pointer}
+.mini:hover{background:var(--gl2)}
+.mini .t{font-weight:700;font-size:12px;width:52px;color:var(--mut)}
+
+/* dashboard */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px}
+.panel h4{margin:0 0 10px;font-size:14px}
+.hbar{display:grid;grid-template-columns:130px 1fr 50px;gap:8px;align-items:center;margin:6px 0;font-size:13px}
+.hbar .track{background:#eef2f0;border-radius:6px;height:14px;overflow:hidden}
+.hbar .fill{background:var(--g);height:100%;border-radius:6px}
+.vbars{display:flex;align-items:flex-end;gap:4px;height:140px;padding-top:10px}
+.vbars .c{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.vbars .b{width:100%;background:var(--g);border-radius:4px 4px 0 0;min-height:2px}
+.vbars .lab{font-size:10px;color:var(--mut);margin-top:4px}
+.vbars .val{font-size:10px;color:var(--ink);margin-bottom:2px}
+
+/* login */
+.login{max-width:360px;margin:10vh auto;background:#fff;border:1px solid var(--line);border-radius:16px;padding:26px}
+.login .logo{width:44px;height:44px;font-size:17px;border-radius:12px;margin-bottom:10px}
+.login select,.login input{width:100%}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;z-index:99;font-weight:600}
+.toast.err{background:var(--red)}
+.loading{padding:40px;text-align:center;color:var(--mut)}
+.prog{height:10px;background:#eef2f0;border-radius:6px;overflow:hidden;margin:8px 0}
+.prog div{height:100%;background:var(--g);width:0}
+.map{display:grid;grid-template-columns:150px 1fr;gap:8px 12px;align-items:center}
+.extra{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px 12px;font-size:13px}
+
+@media (max-width:900px){
+  .calwrap,.grid2{grid-template-columns:1fr}
+  .daypanel{position:static;max-height:none}
+  .cal .d{min-height:60px}
+  .cal .ev .txt{display:none}
+}
+@media (max-width:640px){
+  .topin{flex-wrap:wrap;gap:8px}
+  .tabs{order:3;flex-basis:100%}
+  .brand span{display:none}
+  .hide-m{display:none}
+  main{padding:12px}
+  .kv{grid-template-columns:100px 1fr}
+  .map{grid-template-columns:1fr}
+}
+</style>
+<script>
+window.onerror=function(m,src,l,c){var a=document.getElementById('app');var t='Error: '+m+' (line '+l+':'+c+')';if(a)a.innerHTML='<div class="loading" style="color:#c0392b">'+t.replace(/</g,'&lt;')+'</div>';else window.__err=t;};
+</script>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d7a43">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="FP CRM">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+#installBtn{position:fixed;right:14px;bottom:14px;z-index:60;background:#0d7a43;color:#fff;border:0;border-radius:24px;padding:11px 18px;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.18);cursor:pointer}
+.logo{background:#fff url(icon-192.png) center/120% no-repeat;color:transparent;border:1px solid #e3e8e5}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">Loading…</div></div>
+<div id="modal"></div>
+<div id="toast" class="toast hide"></div>
+
+<script>
+/* ================= safe storage (sandboxed iframes may block localStorage) ================= */
+const store = {
+  get(k){ try{ return window.localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ window.localStorage.setItem(k,v); }catch(e){} },
+  del(k){ try{ window.localStorage.removeItem(k); }catch(e){} }
+};
+window.addEventListener('error', e => { const a=document.getElementById('app'); if(a && /Loading/.test(a.textContent)) a.innerHTML='<div class="loading" style="color:#c0392b">Error: '+String(e.message).replace(/</g,'&lt;')+'</div>'; });
+
+/* ================= constants ================= */
+const HTTPS = 'https:' + '/' + '/';   // written in pieces: Google strips anything after a double slash
+const STATUSES = ['New','Not Answering','Not Reachable','Callback','Interested','Appointment Fixed','Converted','Not Interested','Wrong Number'];
+const OUTCOMES = STATUSES.slice(1);
+const CLOSED = ['Converted','Not Interested','Wrong Number'];
+const NOT_CONNECTED = ['Not Answering','Not Reachable','Wrong Number'];
+const DEFAULT_SOURCES = ['Loans','TCS','Salaried','Current Account','Life Insurance','Commercial Vehicle'];
+const PAGE = 50;
+
+const ICON_PHONE = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>';
+const ICON_WA = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3a.5.5 0 0 0 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.5-.3z"/></svg>';
+
+/* ================= state ================= */
+const S = {
+  me: null, cred: null, leads: [], acts: [], users: [], byId: {},
+  view: 'today', freshLimit: 25, todayWho: '',
+  lf: { q:'', source:'', status:'', who:'', fu:'' }, page: 0, sel: new Set(),
+  cal: null, dash: { period:'week', who:'' },
+  cur: null, queue: [], form: null, editing: false,
+  imp: null
+};
+
+/* ================= helpers ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2,'0');
+const ymd = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const today = () => ymd(new Date());
+const addDays = (n, from) => { const d = from ? new Date(from+'T00:00') : new Date(); d.setDate(d.getDate()+n); return ymd(d); };
+const dpart = s => (s||'').slice(0,10);
+const tpart = s => (s||'').length > 10 ? s.slice(11,16) : '';
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtD(s){ if(!s) return ''; const d=dpart(s), t=tpart(s); const [y,m,dd]=d.split('-'); if(!dd) return s;
+  const lbl = d===today()?'Today':d===addDays(1)?'Tomorrow':d===addDays(-1)?'Yesterday':(+dd)+' '+MON[+m-1]+(y!=String(new Date().getFullYear())?' '+y:'');
+  return lbl + (t?' '+fmtT(t):''); }
+function fmtT(t){ if(!t) return ''; let [h,m]=t.split(':').map(Number); const ap=h>=12?'pm':'am'; h=h%12||12; return h+(m?':'+pad(m):'')+ap; }
+const sCls = s => 's-'+String(s||'New').replace(/\s+/g,'');
+const pill = s => `<span class="pill ${sCls(s)}">${esc(s||'New')}</span>`;
+const isClosed = l => CLOSED.includes(l.status);
+const isAdmin = () => S.me && S.me.role === 'admin';
+const telLink = p => 'tel:' + String(p||'').replace(/[^\d+]/g,'');
+function waLink(p){ let d=String(p||'').replace(/\D/g,''); if(d.length===10) d='91'+d; return HTTPS+'wa.me/'+d; }
+function toast(msg, err){ const t=$('#toast'); t.textContent=msg; t.className='toast'+(err?' err':''); clearTimeout(toast._t); toast._t=setTimeout(()=>t.className='toast hide', err?4500:2200); }
+function sources(){ const s=new Set(DEFAULT_SOURCES); S.leads.forEach(l=>l.source&&s.add(l.source)); return [...s]; }
+function callers(){ return S.users.filter(u=>u.active!=='no'); }
+function actsFor(id){ return S.acts.filter(a=>a.lead_id===id).sort((a,b)=>b.at.localeCompare(a.at)); }
+function details(l){ try{ return JSON.parse(l.details||'{}'); }catch(e){ return {}; } }
+
+/* ================= server bridge ================= */
+// Your web app URL (Deploy → Manage deployments). Leave '' to use google.script.run instead.
+const EXEC_URL = HTTPS+'script.google.com/macros/s/AKfycby28qbNsEIim1QjPwNqCBz-XylSmLRIlEFnbyTVnwSGNavlYrQ_Mq2m8KNBy5zbXDW4Sg/exec';
+function call(action, payload){
+  if (EXEC_URL && !window.__MOCK__) {
+    return fetch(EXEC_URL, { method:'POST', body: JSON.stringify({ cred:S.cred, action, payload: payload||{} }) })
+      .then(r => { if(!r.ok) throw new Error('Server error '+r.status); return r.json(); })
+      .then(r => { if(r && r.ok) return r.data; throw new Error(r ? r.error : 'No response from server'); });
+  }
+  return new Promise((res, rej) => {
+    google.script.run
+      .withSuccessHandler(r => r && r.ok ? res(r.data) : rej(new Error(r ? r.error : 'No response from server')))
+      .withFailureHandler(e => rej(e instanceof Error ? e : new Error(String(e))))
+      .api(S.cred, action, payload || {});
+  });
+}
+function index(){ S.byId = {}; S.leads.forEach(l => S.byId[l.id] = l); S.lastBy = {}; S.acts.forEach(noteAct); }
+function noteAct(a){ const p=S.lastBy[a.lead_id]; if(!p || a.at>=p.at) S.lastBy[a.lead_id]={by:a.by, at:a.at}; }
+async function load(silent){
+  try{
+    const d = await call('load');
+    S.leads = d.leads; S.acts = d.acts; S.users = d.users; index();
+    if(!silent) render(); else if(!S.cur && !$('#modal').innerHTML) render();
+  }catch(e){ toast(e.message, true); if(/log in|PIN/.test(e.message)) logout(); }
+}
+function upsertLead(l){ const i=S.leads.findIndex(x=>x.id===l.id); if(i>-1) S.leads[i]=l; else S.leads.push(l); S.byId[l.id]=l; }
+
+/* ================= login ================= */
+async function showLogin(){
+  $('#app').innerHTML = '<div class="loading">Loading…</div>';
+  let names = [];
+  try{ names = await call('names'); }catch(e){ toast(e.message,true); }
+  $('#app').innerHTML = `
+  <div class="login">
+    <div class="logo">FP</div>
+    <h2 style="margin:0 0 4px">Finance Period CRM</h2>
+    <div class="sub" style="margin-bottom:16px">Telecalling · Follow-ups · Appointments</div>
+    <div class="field"><label>Your name</label>
+      <select id="lgName">${names.map(n=>`<option>${esc(n)}</option>`).join('')}</select></div>
+    <div class="field"><label>PIN</label>
+      <input id="lgPin" type="password" inputmode="numeric" placeholder="4-digit PIN" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn pri" style="width:100%;margin-top:6px" onclick="doLogin()">Log in</button>
+  </div>`;
+  const last = store.get('fpcrm_last'); if(last && names.includes(last)) $('#lgName').value = last;
+  $('#lgPin').focus();
+}
+async function doLogin(){
+  S.cred = { name: $('#lgName').value, pin: $('#lgPin').value.trim() };
+  try{
+    S.me = await call('login');
+    store.set('fpcrm_cred', JSON.stringify(S.cred));
+    store.set('fpcrm_last', S.cred.name);
+    $('#app').innerHTML = '<div class="loading">Loading your leads…</div>';
+    await load();
+  }catch(e){ toast(e.message, true); S.cred=null; }
+}
+function logout(){ store.del('fpcrm_cred'); S.me=null; S.cred=null; S.leads=[]; closeLead(); showLogin(); }
+
+/* ================= shell ================= */
+function go(v){ S.view = v; S.page = 0; render(); window.scrollTo(0,0); }
+function render(){
+  if(!S.me) return showLogin();
+  const tabs = [['today','Today'],['leads','Leads'],['calendar','Calendar'],['dashboard','Dashboard']];
+  tabs.push(['import','Import']);
+  if(isAdmin()) tabs.push(['team','Team']);
+  $('#app').innerHTML = `
+  <div class="top"><div class="topin">
+    <div class="brand"><div class="logo">FP</div><span>Finance Period CRM</span></div>
+    <nav class="tabs">${tabs.map(([k,l])=>`<button class="tab ${S.view===k?'on':''}" onclick="go('${k}')">${l}</button>`).join('')}</nav>
+    <div class="who"><span class="hide-m">${esc(S.me.name)}${isAdmin()?' · admin':''}</span>
+      <button class="iconbtn" title="Refresh" onclick="load()">↻</button>
+      <button class="iconbtn" onclick="logout()">Log out</button></div>
+  </div></div>
+  <main id="view"></main>`;
+  ({today:vToday, leads:vLeads, calendar:vCalendar, dashboard:vDash, import:vImport, team:vTeam}[S.view] || vToday)();
+}
+function whoSelect(val, onch, label){
+  if(!isAdmin()) return '';
+  return `<select onchange="${onch}"><option value="">${label||'All telecallers'}</option>
+    <option value="__none" ${val==='__none'?'selected':''}>Unassigned</option>
+    ${callers().map(u=>`<option ${val===u.name?'selected':''}>${esc(u.name)}</option>`).join('')}</select>`;
+}
+function byWho(list, who, key){ key=key||'assigned_to'; if(!who) return list; if(who==='__none') return list.filter(x=>!x[key]); return list.filter(x=>x[key]===who); }
+
+/* ================= lead card ================= */
+function card(l, kind){
+  const fu = l.next_followup ? fmtD(l.next_followup) : '';
+  const ap = l.appointment ? fmtD(l.appointment) : '';
+  const meta = [l.product, l.city].filter(Boolean).map(esc).join(' · ');
+  return `<div class="lead ${kind||''}" onclick="openLead('${l.id}')">
+    <div class="body">
+      <div class="r1"><span class="nm">${l.name?esc(l.name):'<span style="color:var(--mut);font-weight:600">+ Add name</span>'}</span><span class="badge">${esc(l.source)}</span>${pill(l.status)}</div>
+      <div class="r2">${esc(l.phone)}${meta?' · '+meta:''}${(S.lastBy||{})[l.id]?' · last call: '+esc(S.lastBy[l.id].by)+' '+esc(fmtD(S.lastBy[l.id].at)):''}</div>
+      <div class="r3">${kind==='appt'&&ap?'<b>Appointment '+esc(ap)+'</b> · ':fu?'Follow-up '+esc(fu)+' · ':''}${esc(l.last_comment||'')}</div>
+    </div>
+    <a class="callbtn" href="${telLink(l.phone)}" onclick="event.stopPropagation()">${ICON_PHONE}<span class="hide-m">Call</span></a>
+  </div>`;
+}
+
+/* ================= TODAY ================= */
+function vToday(){
+  const t = today();
+  const L = byWho(S.leads, S.todayWho);
+  const open = L.filter(l=>!isClosed(l));
+  const sortFu = (a,b)=>(a.next_followup||'').localeCompare(b.next_followup||'');
+  const appts = L.filter(l=>dpart(l.appointment)===t).sort((a,b)=>a.appointment.localeCompare(b.appointment));
+  const overdue = open.filter(l=>l.next_followup && dpart(l.next_followup)<t).sort(sortFu);
+  const due = open.filter(l=>dpart(l.next_followup)===t).sort(sortFu);
+  let fresh = L.filter(l=>l.status==='New' && !l.next_followup);
+  if(!isAdmin() && fresh.length){   // shared pool: each telecaller starts at a different point so they don't dial the same numbers
+    const cs=callers().filter(u=>u.role!=='admin').map(u=>u.name).sort(), k=Math.max(0,cs.indexOf(S.me.name));
+    const off=Math.floor(fresh.length*k/Math.max(1,cs.length)); fresh=fresh.slice(off).concat(fresh.slice(0,off));
+  }
+  const retry = open.filter(l=>l.status!=='New' && !l.next_followup && !(l.appointment && dpart(l.appointment)>=t)).sort((a,b)=>(a.last_called||'').localeCompare(b.last_called||''));
+  const myActs = S.acts.filter(a=>dpart(a.at)===t && (S.todayWho ? a.by===S.todayWho : (isAdmin() || a.by===S.me.name)));
+  S.queue = [...overdue, ...due, ...retry, ...fresh].map(l=>l.id);
+  const sec = (title, arr, kind, more) => `<h3>${title} (${arr.length})</h3>` +
+    (arr.length ? `<div class="list">${arr.map(l=>card(l,kind)).join('')}</div>${more||''}` : `<div class="empty">Nothing here</div>`);
+  const hr = new Date().getHours();
+  $('#view').innerHTML = `
+    <div class="bar" style="justify-content:space-between">
+      <h2 style="margin:0">Good ${hr<12?'morning':hr<17?'afternoon':'evening'}, ${esc(S.me.name)}</h2>
+      <div class="row2col">${whoSelect(S.todayWho,"S.todayWho=this.value;vToday()",'Everyone')}
+      <button class="btn" onclick="openAdd()">+ Add lead</button>
+      ${S.queue.length?`<button class="btn pri" onclick="openLead('${S.queue[0]}')">Start calling ▶</button>`:''}</div>
+    </div>
+    <div class="tiles">
+      <div class="tile green"><div class="n">${myActs.length}</div><div class="l">Calls done today</div></div>
+      <div class="tile red"><div class="n">${overdue.length}</div><div class="l">Overdue follow-ups</div></div>
+      <div class="tile"><div class="n">${due.length}</div><div class="l">Follow-ups due today</div></div>
+      <div class="tile gold"><div class="n">${appts.length}</div><div class="l">Appointments today</div></div>
+      <div class="tile"><div class="n">${fresh.length}</div><div class="l">Fresh leads to call</div></div>
+    </div>
+    ${appts.length?sec('Appointments today', appts, 'appt'):''}
+    ${sec('Overdue follow-ups', overdue, 'overdue')}
+    ${sec('Due today', due, '')}
+    ${retry.length?sec('Call again — no follow-up date', retry, ''):''}
+    ${sec('Fresh leads', fresh.slice(0,S.freshLimit), '', fresh.length>S.freshLimit?`<div style="text-align:center;margin-top:10px"><button class="btn" onclick="S.freshLimit+=25;vToday()">Show more (${fresh.length-S.freshLimit} left)</button></div>`:'')}
+  `;
+}
+
+/* ================= LEAD DRAWER ================= */
+function openLead(id){
+  S.cur = id; S.editing = false; S.nameEdit = false;
+  const l = S.byId[id];
+  S.form = { outcome:'', comment:'', fuDate:'', fuTime:'11:00', apDate: dpart(l.appointment), apTime: tpart(l.appointment)||'11:00', quick:'' };
+  drawLead();
+}
+function closeLead(){ S.cur=null; $('#modal').innerHTML=''; if(S.me) render(); }
+function drawLead(){
+  const l = S.byId[S.cur]; if(!l) return closeLead();
+  const f = S.form, det = details(l), hist = actsFor(l.id);
+  const qi = S.queue.indexOf(l.id);
+  const showAp = f.outcome==='Appointment Fixed';
+  const noFu = CLOSED.includes(f.outcome);
+  const kv = (k,v)=> v?`<div class="k">${esc(k)}</div><div class="v">${esc(v)}</div>`:'';
+  const editRow = (k,label,type)=>`<div class="k">${label}</div><div class="v"><input type="${type||'text'}" id="ed_${k}" value="${esc(l[k])}" style="width:100%"></div>`;
+  $('#modal').innerHTML = `
+  <div class="ov" onclick="if(event.target===this)closeLead()">
+   <div class="drawer">
+    <div class="dhead">
+      <button class="x" onclick="closeLead()">×</button>
+      ${(!l.name || S.nameEdit) ? `<div class="row2col" style="margin-right:40px">
+          <input type="text" id="qName" placeholder="Customer name (not added yet)" value="${esc(l.name)}" style="flex:1;min-width:180px;font-size:16px;font-weight:600" onkeydown="if(event.key==='Enter')saveName()">
+          <button class="btn pri sm" onclick="saveName()">Save name</button>${S.nameEdit?'<button class="btn sm" onclick="S.nameEdit=false;drawLead()">Cancel</button>':''}</div>`
+        : `<div style="font-size:18px;font-weight:700">${esc(l.name)} <button class="btn sm" title="Edit name" onclick="S.nameEdit=true;drawLead();setTimeout(()=>$('#qName').focus(),0)">✎</button></div>`}
+      <div class="r1" style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap"><span class="badge">${esc(l.source)}</span>${pill(l.status)}
+        ${l.next_followup?`<span class="sub">Follow-up: ${esc(fmtD(l.next_followup))}</span>`:''}
+        ${l.appointment?`<span class="sub">· Appointment: ${esc(fmtD(l.appointment))}</span>`:''}</div>
+      <div class="acts">
+        <a class="callbtn" href="${telLink(l.phone)}">${ICON_PHONE} ${esc(l.phone)}</a>
+        ${l.alt_phone?`<a class="callbtn" href="${telLink(l.alt_phone)}">${ICON_PHONE} ${esc(l.alt_phone)}</a>`:''}
+        <a class="callbtn wabtn" href="${waLink(l.phone)}" target="_blank">${ICON_WA} WhatsApp</a>
+      </div>
+    </div>
+    <div class="dbody">
+      <div class="box log">
+        <div class="field" style="margin-top:0"><label>Call outcome</label>
+          <div class="chips">${OUTCOMES.map(o=>`<button class="chip ${f.outcome===o?'on':''}" onclick="pickOutcome('${o}')">${o}</button>`).join('')}</div></div>
+        <div class="field"><label>Comment</label>
+          <textarea id="fComment" placeholder="What did the customer say?" oninput="S.form.comment=this.value">${esc(f.comment)}</textarea></div>
+        <div class="field ${showAp?'':'hide'}"><label>Appointment date &amp; time</label>
+          <div class="row2col"><input type="date" value="${f.apDate}" onchange="S.form.apDate=this.value">
+          <input type="time" value="${f.apTime}" onchange="S.form.apTime=this.value"></div></div>
+        <div class="field ${noFu?'hide':''}"><label>Next follow-up</label>
+          <div class="chips" style="margin-bottom:8px">
+            ${[['Tomorrow',1],['2 days',2],['1 week',7],['1 month',30]].map(([t,n])=>`<button class="chip ${f.quick===t?'on':''}" onclick="quickFu('${t}',${n})">${t}</button>`).join('')}
+            <button class="chip ${f.quick==='none'?'on':''}" onclick="quickFu('none',0)">No follow-up</button></div>
+          <div class="row2col"><input type="date" value="${f.fuDate}" onchange="S.form.fuDate=this.value;S.form.quick='';drawLead()">
+          <input type="time" value="${f.fuTime}" onchange="S.form.fuTime=this.value"></div></div>
+        <div class="row2col" style="margin-top:6px">
+          <button class="btn pri" onclick="saveCall(false)">Save</button>
+          ${qi>-1 && qi<S.queue.length-1?`<button class="btn pri" onclick="saveCall(true)">Save &amp; next ▶</button>
+          <button class="btn" onclick="openLead('${S.queue[qi+1]}')">Skip</button>`:''}
+        </div>
+      </div>
+
+      <div class="box">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Customer details</b>
+          ${S.editing?`<span><button class="btn sm" onclick="S.editing=false;drawLead()">Cancel</button> <button class="btn sm pri" onclick="saveEdit()">Save</button></span>`
+                      :`<button class="btn sm" onclick="S.editing=true;drawLead()">Edit</button>`}</div>
+        <div class="kv">
+          ${S.editing ? editRow('name','Name')+editRow('phone','Phone','tel')+editRow('alt_phone','Alt phone','tel')+editRow('email','Email','email')+editRow('city','City')+editRow('product','Product')
+            : kv('Phone',l.phone)+kv('Alt phone',l.alt_phone)+kv('Email',l.email)+kv('City',l.city)+kv('Product',l.product)}
+          ${isAdmin()?`<div class="k">Telecaller</div><div class="v"><select onchange="reassign('${l.id}',this.value)"><option value="">— Unassigned —</option>${callers().map(u=>`<option ${l.assigned_to===u.name?'selected':''}>${esc(u.name)}</option>`).join('')}</select></div>`:''}
+          ${kv('Calls made', l.call_count)}${kv('Last called', fmtD(l.last_called))}${kv('Added', fmtD(l.created_at))}
+        </div>
+      </div>
+
+      ${Object.keys(det).length?`<div class="box"><b>From original sheet</b><div class="kv" style="margin-top:8px">${Object.entries(det).map(([k,v])=>kv(k,v)).join('')}</div></div>`:''}
+
+      <div class="box"><b>Call history</b>
+        <div class="tl" style="margin-top:10px">${hist.length?hist.map(a=>`<div class="it">
+          <div>${pill(a.outcome)} <span class="meta">${esc(fmtD(a.at))} · ${esc(a.by)}</span></div>
+          ${a.comment?`<div style="margin-top:3px">${esc(a.comment)}</div>`:''}
+          ${a.appointment?`<div class="meta">Appointment: ${esc(fmtD(a.appointment))}</div>`:''}
+          ${a.next_followup?`<div class="meta">Next follow-up: ${esc(fmtD(a.next_followup))}</div>`:''}
+        </div>`).join(''):'<div class="sub">No calls yet</div>'}</div>
+      </div>
+    </div>
+   </div>
+  </div>`;
+}
+function pickOutcome(o){
+  const f=S.form; f.outcome=o;
+  if(o==='Not Reachable'||o==='Not Answering'){ f.fuDate=addDays(1); f.quick='Tomorrow'; }
+  else if(o==='Callback'){ if(!f.fuDate){ f.fuDate=addDays(1); f.quick='Tomorrow'; } }
+  else if(o==='Interested'){ f.fuDate=addDays(2); f.quick='2 days'; }
+  else if(o==='Appointment Fixed'){ if(!f.apDate) f.apDate=addDays(1); f.fuDate=''; f.quick=''; }
+  else if(CLOSED.includes(o)){ f.fuDate=''; f.quick='none'; }
+  drawLead();
+}
+function quickFu(t,n){ const f=S.form; f.quick=t; f.fuDate = t==='none' ? '' : addDays(n); drawLead(); }
+async function saveCall(next){
+  const f=S.form, l=S.byId[S.cur];
+  f.comment = ($('#fComment')||{}).value || f.comment;
+  if(!f.outcome) return toast('Choose the call outcome first', true);
+  const p = { lead_id:l.id, outcome:f.outcome, comment:f.comment.trim() };
+  if(f.outcome==='Appointment Fixed'){
+    if(!f.apDate) return toast('Pick the appointment date', true);
+    p.appointment = f.apDate+' '+(f.apTime||'11:00');
+    p.next_followup = f.fuDate ? f.fuDate+' '+(f.fuTime||'11:00') : p.appointment;
+  } else {
+    p.next_followup = (!CLOSED.includes(f.outcome) && f.fuDate) ? f.fuDate+' '+(f.fuTime||'11:00') : '';
+    if(f.outcome==='Converted' || f.outcome==='Not Interested' || f.outcome==='Wrong Number') p.appointment = '';
+  }
+  const qi = S.queue.indexOf(l.id), nextId = next ? S.queue[qi+1] : null;
+  const btns = document.querySelectorAll('.box.log .btn'); btns.forEach(b=>b.disabled=true);
+  try{
+    const r = await call('logCall', p);
+    upsertLead(r.lead); S.acts.push(r.act); noteAct(r.act);
+    toast('Saved ✓');
+    if(nextId){ openLead(nextId); render(); } else closeLead();
+  }catch(e){ toast(e.message, true); btns.forEach(b=>b.disabled=false); }
+}
+async function saveName(){
+  const l=S.byId[S.cur], name=($('#qName').value||'').trim();
+  if(!name) return toast('Type the customer name', true);
+  const keep=($('#fComment')||{}).value; if(keep!==undefined) S.form.comment=keep;
+  try{ const r=await call('updateLead',{id:l.id, fields:{name}}); upsertLead(r.lead); S.nameEdit=false; drawLead(); toast('Name saved ✓'); }
+  catch(e){ toast(e.message,true); }
+}
+async function saveEdit(){
+  const l=S.byId[S.cur], fields={};
+  ['name','phone','alt_phone','email','city','product'].forEach(k=>fields[k]=$('#ed_'+k).value.trim());
+  try{ const r=await call('updateLead',{id:l.id, fields}); upsertLead(r.lead); S.editing=false; drawLead(); toast('Updated ✓'); }
+  catch(e){ toast(e.message,true); }
+}
+async function reassign(id, to){
+  try{ const r=await call('assign',{ids:[id], to}); r.leads.forEach(upsertLead); toast(to?'Assigned to '+to:'Unassigned'); }
+  catch(e){ toast(e.message,true); }
+}
+
+/* ================= ADD LEAD ================= */
+function openAdd(){
+  S.cur=null;
+  $('#modal').innerHTML = `<div class="ov" onclick="if(event.target===this)closeModal()"><div class="drawer"><div class="dhead"><button class="x" onclick="closeModal()">×</button><div style="font-size:18px;font-weight:700">Add a lead</div></div>
+  <div class="dbody">
+    <div class="field"><label>Name</label><input type="text" id="adName" style="width:100%"></div>
+    <div class="field"><label>Mobile number *</label><input type="tel" id="adPhone" style="width:100%"></div>
+    <div class="field"><label>Alternate number</label><input type="tel" id="adAlt" style="width:100%"></div>
+    <div class="field"><label>City</label><input type="text" id="adCity" style="width:100%"></div>
+    <div class="field"><label>Category</label><input type="text" id="adSource" list="srcList" value="${esc(DEFAULT_SOURCES[0])}" style="width:100%">
+      <datalist id="srcList">${sources().map(s=>`<option>${esc(s)}</option>`).join('')}</datalist></div>
+    <div class="field"><label>Product / requirement</label><input type="text" id="adProduct" style="width:100%"></div>
+    ${isAdmin()?`<div class="field"><label>Telecaller</label><select id="adWho" style="width:100%"><option value="">— Unassigned —</option>${callers().map(u=>`<option>${esc(u.name)}</option>`).join('')}</select></div>`:''}
+    <button class="btn pri" onclick="saveAdd()">Add lead</button>
+  </div></div></div>`;
+}
+function closeModal(){ $('#modal').innerHTML=''; }
+async function saveAdd(){
+  const phone = normPhone($('#adPhone').value);
+  if(!phone) return toast('Enter a valid mobile number', true);
+  const dup = S.leads.find(l=>normPhone(l.phone)===phone);
+  if(dup && !confirm('This number already exists ('+(dup.name||'no name')+', '+dup.source+'). Add anyway?')) return;
+  const row = { name:$('#adName').value.trim(), phone, alt_phone:normPhone($('#adAlt').value), city:$('#adCity').value.trim(),
+    source:$('#adSource').value.trim()||'Other', product:$('#adProduct').value.trim(), assigned_to: isAdmin()?$('#adWho').value:S.me.name };
+  try{ const r=await call('addLeads',{rows:[row]}); r.leads.forEach(upsertLead); closeModal(); render(); toast('Lead added ✓'); openLead(r.leads[0].id); }
+  catch(e){ toast(e.message,true); }
+}
+
+/* ================= LEADS LIST ================= */
+function filteredLeads(){
+  const f=S.lf, t=today(), q=f.q.trim().toLowerCase();
+  let L = byWho(S.leads, f.who);
+  if(f.source) L=L.filter(l=>l.source===f.source);
+  if(f.status) L=L.filter(l=>l.status===f.status);
+  if(f.fu==='overdue') L=L.filter(l=>!isClosed(l)&&l.next_followup&&dpart(l.next_followup)<t);
+  if(f.fu==='today') L=L.filter(l=>dpart(l.next_followup)===t);
+  if(f.fu==='upcoming') L=L.filter(l=>dpart(l.next_followup)>t);
+  if(f.fu==='none') L=L.filter(l=>!l.next_followup);
+  if(f.fu==='noname') L=L.filter(l=>!String(l.name||'').trim());
+  if(f.fu==='appt') L=L.filter(l=>l.appointment && dpart(l.appointment)>=t);
+  if(q){ const qd=q.replace(/\D/g,''); L=L.filter(l=>(l.name||'').toLowerCase().includes(q)||(qd.length>=3&&String(l.phone).includes(qd))||(l.city||'').toLowerCase().includes(q)||(l.product||'').toLowerCase().includes(q)); }
+  return L;
+}
+function vLeads(){
+  const f=S.lf, L=filteredLeads(), pages=Math.max(1,Math.ceil(L.length/PAGE));
+  if(S.page>=pages) S.page=pages-1;
+  const rows=L.slice(S.page*PAGE,(S.page+1)*PAGE);
+  const sel=(id,opts,val,ph)=>`<select onchange="S.lf.${id}=this.value;S.page=0;vLeads()"><option value="">${ph}</option>${opts.map(o=>Array.isArray(o)?`<option value="${o[0]}" ${val===o[0]?'selected':''}>${o[1]}</option>`:`<option ${val===o?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
+  const adm=isAdmin(), allOnPage=rows.length&&rows.every(l=>S.sel.has(l.id));
+  $('#view').innerHTML = `
+    <div class="bar" style="justify-content:space-between"><h2 style="margin:0">Leads <span class="sub">(${L.length} of ${S.leads.length})</span></h2>
+      <button class="btn pri" onclick="openAdd()">+ Add lead</button></div>
+    <div class="bar">
+      <input type="text" id="lq" placeholder="Search name, phone, city, product…" value="${esc(f.q)}" oninput="S.lf.q=this.value;S.page=0;clearTimeout(window._lq);window._lq=setTimeout(()=>{vLeads();const i=$('#lq');i.focus();i.setSelectionRange(i.value.length,i.value.length)},250)">
+      ${sel('source',sources(),f.source,'All categories')}
+      ${sel('status',STATUSES,f.status,'All statuses')}
+      ${sel('fu',[['overdue','Overdue'],['today','Due today'],['upcoming','Upcoming'],['appt','Has appointment'],['none','No follow-up'],['noname','Name missing']],f.fu,'Any follow-up')}
+      ${adm?whoSelect(f.who,"S.lf.who=this.value;S.page=0;vLeads()"):''}
+    </div>
+    ${adm?`<div class="bar" style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px">
+      <span><b>${S.sel.size}</b> selected</span>
+      <button class="btn sm" onclick="L_selAll()">Select all ${L.length} filtered</button>
+      <button class="btn sm" onclick="S.sel.clear();vLeads()">Clear</button>
+      <span style="margin-left:auto">Assign to</span>
+      <select id="bulkTo"><option value="">— Unassigned —</option>${callers().map(u=>`<option>${esc(u.name)}</option>`).join('')}</select>
+      <button class="btn sm pri" onclick="bulkAssign()" ${S.sel.size?'':'disabled'}>Assign</button></div>`:''}
+    <div style="overflow-x:auto"><table class="tbl">
+      <thead><tr>${adm?`<th><input type="checkbox" ${allOnPage?'checked':''} onclick="L_selPage(this.checked)"></th>`:''}<th>Name</th><th>Phone</th><th class="hide-m">Category</th><th>Status</th><th class="hide-m">Next follow-up</th><th class="hide-m">Last comment</th>${adm?'<th class="hide-m">Telecaller</th>':''}</tr></thead>
+      <tbody>${rows.map(l=>`<tr class="rowc" onclick="openLead('${l.id}')">
+        ${adm?`<td onclick="event.stopPropagation()"><input type="checkbox" ${S.sel.has(l.id)?'checked':''} onclick="L_tog('${l.id}',this.checked)"></td>`:''}
+        <td>${l.name?'<b>'+esc(l.name)+'</b>':'<span class="sub">+ Add name</span>'}</td>
+        <td><a href="${telLink(l.phone)}" onclick="event.stopPropagation()">${esc(l.phone)}</a></td>
+        <td class="hide-m"><span class="badge">${esc(l.source)}</span></td>
+        <td>${pill(l.status)}</td>
+        <td class="hide-m" style="${!isClosed(l)&&l.next_followup&&dpart(l.next_followup)<today()?'color:var(--red);font-weight:600':''}">${esc(fmtD(l.next_followup))}</td>
+        <td class="hide-m"><div class="clip">${esc(l.last_comment)}</div></td>
+        ${adm?`<td class="hide-m">${esc(l.assigned_to||'—')}</td>`:''}
+      </tr>`).join('') || `<tr><td colspan="8" class="sub" style="text-align:center;padding:20px">No leads match</td></tr>`}</tbody>
+    </table></div>
+    <div class="pager"><button class="btn sm" ${S.page?'':'disabled'} onclick="S.page--;vLeads()">‹ Prev</button> Page ${S.page+1} of ${pages}
+      <button class="btn sm" ${S.page<pages-1?'':'disabled'} onclick="S.page++;vLeads()">Next ›</button></div>`;
+}
+function L_tog(id,on){ on?S.sel.add(id):S.sel.delete(id); vLeads(); }
+function L_selPage(on){ const L=filteredLeads().slice(S.page*PAGE,(S.page+1)*PAGE); L.forEach(l=>on?S.sel.add(l.id):S.sel.delete(l.id)); vLeads(); }
+function L_selAll(){ filteredLeads().forEach(l=>S.sel.add(l.id)); vLeads(); }
+async function bulkAssign(){
+  const to=$('#bulkTo').value, ids=[...S.sel];
+  try{
+    for(let i=0;i<ids.length;i+=200){ const r=await call('assign',{ids:ids.slice(i,i+200), to}); r.leads.forEach(upsertLead); toast(`Assigned ${Math.min(i+200,ids.length)} / ${ids.length}`); }
+    S.sel.clear(); vLeads(); toast('Assigned ✓');
+  }catch(e){ toast(e.message,true); }
+}
+
+/* ================= CALENDAR ================= */
+function vCalendar(){
+  if(!S.cal){ const d=new Date(); S.cal={y:d.getFullYear(), m:d.getMonth(), day:today(), who:''}; }
+  const c=S.cal, t=today();
+  const L=byWho(S.leads, c.who);
+  const ev={};  // date -> {fu:[],ap:[]}
+  const add=(d,k,l)=>{ (ev[d]=ev[d]||{fu:[],ap:[]})[k].push(l); };
+  L.forEach(l=>{
+    if(l.appointment) add(dpart(l.appointment),'ap',l);
+    if(l.next_followup && !isClosed(l) && !(l.appointment && dpart(l.appointment)===dpart(l.next_followup))) add(dpart(l.next_followup),'fu',l);
+  });
+  const first=new Date(c.y,c.m,1), start=new Date(first); start.setDate(1-((first.getDay()+6)%7));
+  let cells='';
+  for(let i=0;i<42;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i); const k=ymd(d), e=ev[k];
+    if(i>=35 && d.getMonth()!==c.m) break;
+    const past=k<t;
+    cells+=`<div class="d ${d.getMonth()!==c.m?'out':''} ${k===t?'today':''} ${k===c.day?'sel':''}" onclick="S.cal.day='${k}';vCalendar()">
+      <div class="dn">${d.getDate()}</div>
+      ${e&&e.ap.length?`<div class="ev ap">${e.ap.length}<span class="txt"> appt${e.ap.length>1?'s':''}</span></div>`:''}
+      ${e&&e.fu.length?`<div class="ev ${past?'od':'fu'}">${e.fu.length}<span class="txt"> ${past?'missed':'follow-up'+(e.fu.length>1?'s':'')}</span></div>`:''}
+    </div>`;
+  }
+  const de=ev[c.day]||{fu:[],ap:[]};
+  const items=[...de.ap.map(l=>({l,k:'ap',t:tpart(l.appointment)})), ...de.fu.map(l=>({l,k:'fu',t:tpart(l.next_followup)}))].sort((a,b)=>(a.t||'').localeCompare(b.t||''));
+  let w7fu=0,w7ap=0; for(let i=0;i<7;i++){ const e=ev[addDays(i)]; if(e){w7fu+=e.fu.length;w7ap+=e.ap.length;} }
+  $('#view').innerHTML=`
+    <div class="calhead">
+      <button class="btn sm" onclick="calMove(-1)">‹</button><div class="mo">${['January','February','March','April','May','June','July','August','September','October','November','December'][c.m]} ${c.y}</div><button class="btn sm" onclick="calMove(1)">›</button>
+      <button class="btn sm" onclick="S.cal=null;vCalendar()">Today</button>
+      ${whoSelect(c.who,"S.cal.who=this.value;vCalendar()")}
+      <span class="sub" style="margin-left:auto">Next 7 days: <b>${w7fu}</b> follow-ups · <b>${w7ap}</b> appointments</span>
+    </div>
+    <div class="calwrap">
+      <div class="cal">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="dow">${d}</div>`).join('')}${cells}</div>
+      <div class="daypanel">
+        <b>${esc(fmtD(c.day))}</b> <span class="sub">${c.day}</span>
+        <div style="margin-top:8px">${items.length?items.map(({l,k,t})=>`<div class="mini" onclick="openLead('${l.id}')">
+          <div class="t">${t?fmtT(t):'—'}</div>
+          <div style="flex:1;min-width:0"><div><b>${esc(l.name||l.phone)}</b> <span class="ev ${k==='ap'?'ap':(c.day<today()?'od':'fu')}" style="display:inline">${k==='ap'?'Appointment':'Follow-up'}</span></div>
+          <div class="sub" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(l.phone)} · ${esc(l.source)}${isAdmin()&&l.assigned_to?' · '+esc(l.assigned_to):''}</div></div></div>`).join(''):'<div class="sub" style="padding:10px 0">Nothing scheduled</div>'}</div>
+      </div>
+    </div>`;
+}
+function calMove(n){ const c=S.cal; c.m+=n; if(c.m<0){c.m=11;c.y--;} if(c.m>11){c.m=0;c.y++;} vCalendar(); }
+
+/* ================= DASHBOARD ================= */
+function periodStart(p){ const d=new Date(); if(p==='today') return today(); if(p==='week'){ d.setDate(d.getDate()-((d.getDay()+6)%7)); return ymd(d);} if(p==='month') return ymd(new Date(d.getFullYear(),d.getMonth(),1)); return '0000'; }
+function vDash(){
+  const D=S.dash, t=today(), from=periodStart(D.period);
+  const L=byWho(S.leads, D.who);
+  const A=S.acts.filter(a=>dpart(a.at)>=from && (!D.who || a.by===D.who));
+  const uniq=(arr,o)=>new Set(arr.filter(a=>!o||o.includes(a.outcome)).map(a=>a.lead_id)).size;
+  const connected=A.filter(a=>!NOT_CONNECTED.includes(a.outcome)).length;
+  const open=L.filter(l=>!isClosed(l));
+  const overdue=open.filter(l=>l.next_followup&&dpart(l.next_followup)<t).length;
+  const dueT=open.filter(l=>dpart(l.next_followup)===t).length;
+  const appt7=L.filter(l=>l.appointment&&dpart(l.appointment)>=t&&dpart(l.appointment)<=addDays(7)).length;
+  const untouched=L.filter(l=>l.status==='New'&&!(+l.call_count)).length;
+  // status bars
+  const sc={}; L.forEach(l=>sc[l.status||'New']=(sc[l.status||'New']||0)+1);
+  const smax=Math.max(1,...Object.values(sc));
+  // per source
+  const src={}; L.forEach(l=>{ const s=src[l.source]=src[l.source]||{n:0,called:0,int:0,ap:0,conv:0};
+    s.n++; if(+l.call_count) s.called++; if(l.status==='Interested') s.int++; if(l.status==='Appointment Fixed') s.ap++; if(l.status==='Converted') s.conv++; });
+  // per caller
+  const callerRows = isAdmin() ? callers().map(u=>{ const ul=S.leads.filter(l=>l.assigned_to===u.name), ua=A.filter(a=>a.by===u.name);
+    return {n:u.name, leads:ul.length, calls:ua.length, conn:ua.filter(a=>!NOT_CONNECTED.includes(a.outcome)).length,
+      ap:uniq(ua,['Appointment Fixed']), conv:uniq(ua,['Converted']), od:ul.filter(l=>!isClosed(l)&&l.next_followup&&dpart(l.next_followup)<t).length}; }) : [];
+  // calls by day (14)
+  const days=[]; for(let i=13;i>=0;i--){ const k=addDays(-i); days.push({k, n:S.acts.filter(a=>dpart(a.at)===k&&(!D.who||a.by===D.who)).length}); }
+  const dmax=Math.max(1,...days.map(d=>d.n));
+  const upAppts=L.filter(l=>l.appointment&&dpart(l.appointment)>=t).sort((a,b)=>a.appointment.localeCompare(b.appointment)).slice(0,8);
+  const pct=(a,b)=>b?Math.round(a*100/b)+'%':'—';
+  const tile=(n,l,cls,click)=>`<div class="tile ${cls||''} ${click?'click':''}" ${click?`onclick="${click}"`:''}><div class="n">${n}</div><div class="l">${l}</div></div>`;
+  $('#view').innerHTML=`
+    <div class="bar" style="justify-content:space-between"><h2 style="margin:0">Dashboard</h2>
+      <div class="row2col"><select onchange="S.dash.period=this.value;vDash()">${[['today','Today'],['week','This week'],['month','This month'],['all','All time']].map(([k,l])=>`<option value="${k}" ${D.period===k?'selected':''}>${l}</option>`).join('')}</select>
+      ${isAdmin()?`<select onchange="S.dash.who=this.value;vDash()"><option value="">All telecallers</option>${callers().map(u=>`<option ${D.who===u.name?'selected':''}>${esc(u.name)}</option>`).join('')}</select>`:''}</div></div>
+    <h3 style="margin-top:4px">Pipeline right now</h3>
+    <div class="tiles">
+      ${tile(L.length,'Total leads','', "S.lf={q:'',source:'',status:'',who:S.dash.who,fu:''};go('leads')")}
+      ${tile(untouched,'Not called yet','', "S.lf={q:'',source:'',status:'New',who:S.dash.who,fu:''};go('leads')")}
+      ${tile(overdue,'Overdue follow-ups','red', "S.lf={q:'',source:'',status:'',who:S.dash.who,fu:'overdue'};go('leads')")}
+      ${tile(dueT,'Follow-ups due today','', "S.lf={q:'',source:'',status:'',who:S.dash.who,fu:'today'};go('leads')")}
+      ${tile(appt7,'Appointments next 7 days','gold', "go('calendar')")}
+    </div>
+    <h3>Calling activity · ${{today:'today',week:'this week',month:'this month',all:'all time'}[D.period]}</h3>
+    <div class="tiles">
+      ${tile(A.length,'Calls made','green')}
+      ${tile(pct(connected,A.length),'Connected rate')}
+      ${tile(uniq(A,['Interested']),'Interested leads')}
+      ${tile(uniq(A,['Appointment Fixed']),'Appointments fixed','gold')}
+      ${tile(uniq(A,['Converted']),'Converted','green')}
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <div class="panel"><h4>Leads by status</h4>
+        ${STATUSES.filter(s=>sc[s]).map(s=>`<div class="hbar"><span>${s}</span><div class="track"><div class="fill" style="width:${sc[s]*100/smax}%"></div></div><span class="num">${sc[s]}</span></div>`).join('')||'<div class="sub">No leads yet</div>'}
+      </div>
+      <div class="panel"><h4>Calls per day · last 14 days</h4>
+        <div class="vbars">${days.map(d=>`<div class="c" title="${d.k}: ${d.n} calls"><div class="val">${d.n||''}</div><div class="b" style="height:${d.n*100/dmax}%"></div><div class="lab">${+d.k.slice(8)}</div></div>`).join('')}</div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:14px;overflow-x:auto"><h4>By category</h4>
+      <table class="tbl" style="border:0"><thead><tr><th>Category</th><th class="num">Leads</th><th class="num">Called</th><th class="num">Called %</th><th class="num">Interested</th><th class="num">Appointments</th><th class="num">Converted</th></tr></thead>
+      <tbody>${Object.entries(src).sort((a,b)=>b[1].n-a[1].n).map(([k,s])=>`<tr class="rowc" onclick="S.lf={q:'',source:'${esc(k)}',status:'',who:S.dash.who,fu:''};go('leads')"><td><b>${esc(k)}</b></td><td class="num">${s.n}</td><td class="num">${s.called}</td><td class="num">${pct(s.called,s.n)}</td><td class="num">${s.int}</td><td class="num">${s.ap}</td><td class="num">${s.conv}</td></tr>`).join('')||'<tr><td colspan="7" class="sub">No leads yet</td></tr>'}</tbody></table>
+    </div>
+    ${isAdmin()?`<div class="panel" style="margin-top:14px;overflow-x:auto"><h4>Telecaller performance · ${{today:'today',week:'this week',month:'this month',all:'all time'}[D.period]}</h4>
+      <table class="tbl" style="border:0"><thead><tr><th>Telecaller</th><th class="num">Leads assigned</th><th class="num">Calls</th><th class="num">Connected</th><th class="num">Appointments</th><th class="num">Converted</th><th class="num">Overdue</th></tr></thead>
+      <tbody>${callerRows.map(r=>`<tr><td><b>${esc(r.n)}</b></td><td class="num">${r.leads}</td><td class="num">${r.calls}</td><td class="num">${r.conn}</td><td class="num">${r.ap}</td><td class="num">${r.conv}</td><td class="num" style="${r.od?'color:var(--red);font-weight:700':''}">${r.od}</td></tr>`).join('')}</tbody></table></div>`:''}
+    <div class="panel" style="margin-top:14px"><h4>Upcoming appointments</h4>
+      ${upAppts.length?upAppts.map(l=>`<div class="mini" onclick="openLead('${l.id}')"><div class="t" style="width:110px">${esc(fmtD(l.appointment))}</div><div style="flex:1"><b>${esc(l.name||l.phone)}</b> <span class="sub">· ${esc(l.phone)} · ${esc(l.source)}${isAdmin()&&l.assigned_to?' · '+esc(l.assigned_to):''}</span></div></div>`).join(''):'<div class="sub">No upcoming appointments</div>'}
+    </div>`;
+}
+
+/* ================= IMPORT (admin) ================= */
+const FIELDS = [
+  ['name','Customer name'],['phone','Mobile number *'],['alt_phone','Alternate number'],['email','Email'],['city','City / location'],
+  ['product','Product / business'],['status','Existing call status'],['last_called','Last call date'],['next_followup','Next follow-up date'],['last_comment','Remarks / comment']];
+const GUESS = {
+  name:   [[/^(customer|client)[\s_]*name$/,10],[/^name$/,9],[/legal name/,8],[/(customer|client|insured|applicant|proposer).*name/,7],[/name/,3]],
+  phone:  [[/^(mobile|mobile number|mobile no|contact|contact no|contact number|phone|phone number|mob)$/,10],[/mobile|phone|contact|cell/,6]],
+  alt_phone:[[/alternate|alt\.?\s*(no|number|mobile)?|secondary|^an\s?\d/,8]],
+  email:  [[/e-?mail/,10]],
+  city:   [[/^city|city|town/,8],[/location|district|area|place/,5]],
+  product:[[/^product[\s_]*name$|^product$/,9],[/product|vehicle type|business nature|loan type|plan/,6]],
+  status: [[/call status/,10],[/^status$/,8]],
+  last_called:[[/last call/,10]],
+  next_followup:[[/next follow|follow.?up date/,10],[/follow.?up/,6]],
+  last_comment:[[/caller.*remark/,10],[/remark|comment|notes?$/,6]]
+};
+const NOT_NAME=/trade|company|branch|fls|corporate|product|vehicle|csm|campus|business/;
+const NOT_PHONE=/alternate|alt|vehicle|application|contract|s\.?no|ucic|^an\s?\d/;
+
+function normPhone(v){
+  if(v==null) return '';
+  let s=String(v).trim(); if(/^\d+(\.\d+)?e\+?\d+$/i.test(s)) s=String(Math.round(Number(s)));
+  s=s.replace(/\.0+$/,'').replace(/[\s\-().]/g,'');
+  const m=s.match(/\+?\d{8,13}/); if(!m) return '';
+  let d=m[0].replace(/\D/g,'');
+  if(d.length===12&&d.startsWith('91')) d=d.slice(2);
+  else if(d.length===11&&d.startsWith('0')) d=d.slice(1);
+  return d.length>=8?d:'';
+}
+function normDate(v){
+  if(v==null||v==='') return '';
+  if(typeof v==='number' && v>20000 && v<80000){ const d=new Date(Math.round((v-25569)*864e5)); return ymd(new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())); }
+  const s=String(v).trim(); let m;
+  if((m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return m[1]+'-'+pad(m[2])+'-'+pad(m[3]);
+  if((m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/))){ let y=m[3]; if(y.length===2) y='20'+y; return y+'-'+pad(m[2])+'-'+pad(m[1]); }
+  const t=Date.parse(s); return isNaN(t)?'':ymd(new Date(t));
+}
+function normStatus(v){
+  const s=String(v||'').toLowerCase().trim(); if(!s) return '';
+  if(/not\s*interest/.test(s)) return 'Not Interested';
+  if(/wrong|invalid/.test(s)) return 'Wrong Number';
+  if(/convert|closed won|done|login|sanction|disburs/.test(s)) return 'Converted';
+  if(/appoint|appt|meeting|visit/.test(s)) return 'Appointment Fixed';
+  if(/interest|spoken|hot|warm/.test(s)) return 'Interested';
+  if(/rnr|ring|no answer|not answer|busy/.test(s)) return 'Not Answering';
+  if(/not\s*reach|switch|unreach/.test(s)) return 'Not Reachable';
+  if(/call\s*back|callback|follow/.test(s)) return 'Callback';
+  return 'Callback';
+}
+function guessSource(name){
+  const n=String(name||'').toLowerCase();
+  if(/tcs/.test(n)) return 'TCS';
+  if(/commercial|vehicle|\bcv\b/.test(n)) return 'Commercial Vehicle';
+  if(/\bca\b|current/.test(n)) return 'Current Account';
+  if(/life|persist|insur|policy/.test(n)) return 'Life Insurance';
+  if(/salar/.test(n)) return 'Salaried';
+  if(/loan|hl|lap|pl\b/.test(n)) return 'Loans';
+  return String(name||'').trim();
+}
+
+function vImport(){
+  const I=S.imp=S.imp||{mode:'sheet', url:store.get('fpcrm_srcurl')||'', tabs:[], tab:'', grid:null};
+  $('#view').innerHTML=`
+    <h2>Import leads</h2>
+    <div class="sub" style="margin-bottom:12px">Bring leads in from your old Google Sheet tabs or from an Excel / CSV file. Each tab can have totally different columns: you just tell the CRM which column is the name and which is the phone. All other columns are kept as extra details on the lead.</div>
+    <div class="panel">
+      <div class="chips" style="margin-bottom:12px">
+        <button class="chip ${I.mode==='sheet'?'on':''}" onclick="S.imp.mode='sheet';vImport()">From Google Sheet</button>
+        <button class="chip ${I.mode==='file'?'on':''}" onclick="S.imp.mode='file';vImport()">Upload Excel / CSV</button></div>
+      ${I.mode==='sheet'?`
+        <div class="bar"><input type="url" id="impUrl" placeholder="Paste Google Sheet link" value="${esc(I.url)}" style="flex:1;min-width:240px">
+          <button class="btn pri" onclick="impTabs()">Load tabs</button></div>
+        ${I.tabs.length?`<div class="chips">${I.tabs.map(t=>`<button class="chip ${I.tab===t.name?'on':''}" onclick="impSheetTab('${esc(t.name).replace(/'/g,"\\'")}')">${esc(t.name)} <span style="opacity:.7">· ${Math.max(0,t.rows-1)}</span></button>`).join('')}</div>`:''}`
+      :`<input type="file" accept=".xlsx,.xls,.csv" onchange="impFile(this.files[0])"> ${I.fileSheets&&I.fileSheets.length>1?`<div class="chips" style="margin-top:10px">${I.fileSheets.map(n=>`<button class="chip ${I.tab===n?'on':''}" onclick="impFileSheet('${esc(n).replace(/'/g,"\\'")}')">${esc(n)}</button>`).join('')}</div>`:''}`}
+    </div>
+    <div id="impMap"></div>`;
+  if(I.grid) drawMap();
+}
+async function impTabs(){
+  const I=S.imp; I.url=$('#impUrl').value.trim(); if(!I.url) return toast('Paste the sheet link',true);
+  store.set('fpcrm_srcurl',I.url);
+  try{ toast('Opening sheet…'); I.tabs=await call('sheetTabs',{url:I.url}); I.grid=null; I.tab=''; vImport(); }
+  catch(e){ toast(e.message+' — make sure the CRM owner account can open this sheet',true); }
+}
+async function impSheetTab(name){
+  const I=S.imp; I.tab=name;
+  try{ toast('Reading “'+name+'”…'); const g=await call('sheetData',{url:I.url, tab:name}); prepGrid(g, name); vImport(); }
+  catch(e){ toast(e.message,true); }
+}
+function loadXLSX(){ return window.XLSX?Promise.resolve():new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=HTTPS+'cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js'; s.onload=res; s.onerror=()=>rej(new Error('Could not load Excel reader')); document.head.appendChild(s); }); }
+async function impFile(file){
+  if(!file) return;
+  try{
+    await loadXLSX();
+    const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
+    S.imp.wb=wb; S.imp.fileSheets=wb.SheetNames; S.imp.fileName=file.name.replace(/\.\w+$/,'');
+    impFileSheet(wb.SheetNames[0]);
+  }catch(e){ toast(e.message,true); }
+}
+function impFileSheet(n){
+  const I=S.imp, ws=I.wb.Sheets[n]; I.tab=n;
+  const raw=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+  const txt=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''});
+  I.rawGrid=raw; prepGrid(txt, I.wb.SheetNames.length>1?n:I.fileName); vImport();
+}
+function prepGrid(grid, tabName){
+  const I=S.imp;
+  if(!grid.length) return toast('That tab is empty',true);
+  let hr=0,best=-1;
+  for(let r=0;r<Math.min(10,grid.length);r++){ const c=grid[r].filter(v=>String(v).trim()!=='').length; if(c>best){best=c;hr=r;} }
+  const seen={};
+  I.headers=grid[hr].map((h,i)=>{ let n=String(h).trim()||('Column '+(i+1)); if(seen[n]){ seen[n]++; n+=' ('+seen[n]+')'; } else seen[n]=1; return n; });
+  I.grid=grid; I.hr=hr;
+  if(I.mode==='sheet') I.rawGrid=null;
+  // guess mapping
+  const used=new Set(), map={};
+  ['phone','name','alt_phone','email','city','product','status','last_called','next_followup','last_comment'].forEach(f=>{
+    let bi=-1,bs=0;
+    I.headers.forEach((h,i)=>{ if(used.has(i)) return; const k=h.toLowerCase().replace(/[_]+/g,' ').replace(/\s+/g,' ').trim();
+      if(f==='name'&&NOT_NAME.test(k)) return; if(f==='phone'&&NOT_PHONE.test(k)) return;
+      for(const [re,sc] of GUESS[f]) if(re.test(k)&&sc>bs){bs=sc;bi=i;} });
+    // phone fallback: column whose values look like mobile numbers
+    if(f==='phone'&&bi<0){ I.headers.forEach((h,i)=>{ if(bi>-1||used.has(i)) return; const vals=grid.slice(hr+1,hr+21).map(r=>normPhone(r[i])).filter(v=>v.length===10); if(vals.length>=5) bi=i; }); }
+    map[f]=bi; if(bi>-1) used.add(bi);
+  });
+  I.map=map;
+  // a blank-header column followed by repeated header names = a second, unrelated table side by side (like TCS tab) → skip it by default
+  let cut=I.headers.length;
+  grid[hr].forEach((h,i)=>{ if(cut<I.headers.length||String(h).trim()!=='') return;
+    const before=new Set(grid[hr].slice(0,i).map(x=>String(x).trim().toLowerCase()).filter(Boolean));
+    if(grid[hr].slice(i+1).some(x=>before.has(String(x).trim().toLowerCase()))) cut=i; });
+  I.extra=new Set(I.headers.map((h,i)=>i).filter(i=>i<cut && !used.has(i) && !/^Column \d+$/.test(I.headers[i]) && !/call status|last call|next follow|caller/i.test(I.headers[i])));
+  I.source=guessSource(tabName); I.assign=''; I.skipDup=true; I.progress=null;
+}
+function impRows(){
+  const I=S.imp, out=[], seen=new Set(S.leads.map(l=>normPhone(l.phone)));
+  let noPhone=0,dup=0;
+  const get=(r,i)=>i>-1?String(I.grid[r][i]==null?'':I.grid[r][i]).trim():'';
+  const getRaw=(r,i)=>i>-1?(I.rawGrid&&I.rawGrid[r]?I.rawGrid[r][i]:I.grid[r][i]):'';
+  for(let r=I.hr+1;r<I.grid.length;r++){
+    const row=I.grid[r]; if(!row||row.every(v=>String(v).trim()==='')) continue;
+    const m=I.map, phone=normPhone(getRaw(r,m.phone));
+    if(!phone){ noPhone++; continue; }
+    if(I.skipDup && seen.has(phone)){ dup++; continue; }
+    seen.add(phone);
+    const det={}; I.extra.forEach(i=>{ const v=get(r,i); if(v) det[I.headers[i]]=v; });
+    const st=normStatus(get(r,m.status)), lc=normDate(getRaw(r,m.last_called)), nf=normDate(getRaw(r,m.next_followup));
+    out.push({ name:get(r,m.name), phone, alt_phone:normPhone(getRaw(r,m.alt_phone)), email:get(r,m.email), city:get(r,m.city),
+      product:get(r,m.product), source:I.source||'Other', status:st||(lc?'Callback':'New'),
+      last_called:lc?lc+' 10:00':'', next_followup:nf?nf+' 11:00':'', last_comment:get(r,m.last_comment), details:det });
+  }
+  return {out,noPhone,dup};
+}
+function drawMap(){
+  const I=S.imp, opt=sel=>`<option value="-1">— none —</option>`+I.headers.map((h,i)=>`<option value="${i}" ${sel===i?'selected':''}>${esc(h)}</option>`).join('');
+  const {out,noPhone,dup}=impRows();
+  const cs=callers().filter(u=>u.role!=='admin');
+  $('#impMap').innerHTML=`
+   <div class="panel" style="margin-top:14px">
+    <h4>1 · Match the columns <span class="sub">(tab: ${esc(I.tab)} · header row ${I.hr+1})</span></h4>
+    <div class="map">${FIELDS.map(([k,l])=>`<label>${l}</label><select onchange="S.imp.map.${k}=+this.value;drawMap()">${opt(I.map[k])}</select>`).join('')}</div>
+    <h4 style="margin-top:16px">2 · Extra columns to keep as details</h4>
+    <div class="extra">${I.headers.map((h,i)=>Object.values(I.map).includes(i)?'':`<label><input type="checkbox" ${I.extra.has(i)?'checked':''} onchange="this.checked?S.imp.extra.add(${i}):S.imp.extra.delete(${i});drawMap()"> ${esc(h)}</label>`).join('')}</div>
+    <h4 style="margin-top:16px">3 · Category &amp; telecaller</h4>
+    <div class="bar">
+      <label>Category</label><input type="text" list="srcList2" value="${esc(I.source)}" onchange="S.imp.source=this.value.trim();drawMap()"><datalist id="srcList2">${sources().map(s=>`<option>${esc(s)}</option>`).join('')}</datalist>
+      ${isAdmin()?`<label style="margin-left:10px">Assign to</label>
+      <select onchange="S.imp.assign=this.value"><option value="">— Unassigned (assign later) —</option>
+        ${cs.length?`<option value="__split" ${I.assign==='__split'?'selected':''}>Split equally between all telecallers (${cs.length})</option>`:''}
+        ${callers().map(u=>`<option ${I.assign===u.name?'selected':''}>${esc(u.name)}</option>`).join('')}</select>`:''}
+      <label style="margin-left:10px"><input type="checkbox" ${I.skipDup?'checked':''} onchange="S.imp.skipDup=this.checked;drawMap()"> Skip numbers already in CRM</label>
+    </div>
+    <h4 style="margin-top:16px">4 · Preview</h4>
+    <div class="sub" style="margin-bottom:8px"><b style="color:var(--g)">${out.length} leads ready</b> · ${noPhone} rows skipped (no valid phone) · ${dup} duplicates skipped</div>
+    <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Name</th><th>Phone</th><th>City</th><th>Product</th><th>Status</th><th>Follow-up</th><th>Details</th></tr></thead>
+      <tbody>${out.slice(0,5).map(r=>`<tr><td>${esc(r.name)}</td><td>${esc(r.phone)}</td><td>${esc(r.city)}</td><td><div class="clip" style="max-width:160px">${esc(r.product)}</div></td><td>${pill(r.status)}</td><td>${esc(r.next_followup)}</td><td><div class="clip" style="max-width:220px">${esc(Object.entries(r.details).map(([k,v])=>k+': '+v).join(' · '))}</div></td></tr>`).join('')}</tbody></table></div>
+    <div style="margin-top:12px" id="impGo">${I.progress!=null?`<div class="prog"><div style="width:${I.progress}%"></div></div>`:`<button class="btn pri" ${out.length&&I.map.phone>-1?'':'disabled'} onclick="impGo()">Import ${out.length} leads</button>`}</div>
+   </div>`;
+}
+async function impGo(){
+  const I=S.imp, {out}=impRows(); if(!out.length) return;
+  const cnt=n=>S.leads.filter(l=>l.assigned_to===n).length;
+  const cs=callers().filter(u=>u.role!=='admin').map(u=>u.name).sort((a,b)=>cnt(a)-cnt(b));  // least-loaded first
+  out.forEach((r,i)=>r.assigned_to = I.assign==='__split' ? cs[i%cs.length] : I.assign);
+  I.progress=0; drawMap();
+  try{
+    for(let i=0;i<out.length;i+=300){
+      const r=await call('addLeads',{rows:out.slice(i,i+300)}); r.leads.forEach(upsertLead);
+      I.progress=Math.round(Math.min(i+300,out.length)*100/out.length); drawMap();
+    }
+    toast(`Imported ${out.length} leads ✓`); I.grid=null; I.progress=null; I.tab=''; vImport();
+  }catch(e){ I.progress=null; drawMap(); toast(e.message,true); }
+}
+
+/* ================= TEAM (admin) ================= */
+function vTeam(){
+  $('#view').innerHTML=`
+    <div class="bar" style="justify-content:space-between"><h2 style="margin:0">Team</h2><span class="row2col"><button class="btn" onclick="testDigest()">Send today's email now</button><button class="btn pri" onclick="userForm()">+ Add telecaller</button></span></div>
+    <div class="sub" style="margin-bottom:10px">Each telecaller logs in with their name and PIN. All telecallers share all leads; each one's fresh-lead list starts at a different point so they don't call the same numbers.</div>
+    <table class="tbl"><thead><tr><th>Name</th><th>Role</th><th>PIN</th><th>Email (8 AM alert)</th><th class="num">Leads</th><th>Status</th><th></th></tr></thead>
+    <tbody>${S.users.map(u=>`<tr><td><b>${esc(u.name)}</b></td><td>${u.role==='admin'?'Admin':'Telecaller'}</td><td>${esc(u.pin)}</td><td>${u.email?esc(u.email):'<span class="sub">not set</span>'}</td>
+      <td class="num">${S.leads.filter(l=>l.assigned_to===u.name).length}</td><td>${u.active==='no'?'<span class="pill s-NotInterested">Disabled</span>':'<span class="pill s-Interested">Active</span>'}</td>
+      <td><button class="btn sm" onclick="userForm('${u.id}')">Edit</button></td></tr>`).join('')}</tbody></table>
+    ${S.users.some(u=>u.name==='Admin'&&u.pin==='1234')?'<div class="empty" style="margin-top:12px;color:var(--red)">Please change the default Admin PIN (1234). Click Edit on Admin.</div>':''}`;
+}
+async function testDigest(){
+  try{ toast('Sending…'); const r=await call('testDigest'); toast(r); }
+  catch(e){ toast(/permission|authoriz|MailApp/i.test(e.message)?'Email permission not given yet: run setupDailyEmail once in the Apps Script editor':e.message, true); }
+}
+function userForm(id){
+  const u=S.users.find(x=>x.id===id)||{name:'',pin:String(Math.floor(1000+Math.random()*9000)),role:'caller',active:'yes'};
+  $('#modal').innerHTML=`<div class="ov" onclick="if(event.target===this)closeModal()"><div class="drawer"><div class="dhead"><button class="x" onclick="closeModal()">×</button><div style="font-size:18px;font-weight:700">${id?'Edit user':'Add telecaller'}</div></div>
+  <div class="dbody">
+    <div class="field"><label>Name</label><input type="text" id="uName" value="${esc(u.name)}" style="width:100%"></div>
+    <div class="field"><label>PIN</label><input type="text" id="uPin" value="${esc(u.pin)}" inputmode="numeric" style="width:100%"></div>
+    <div class="field"><label>Email for the 8 AM alert</label><input type="email" id="uEmail" value="${esc(u.email||'')}" placeholder="name@gmail.com" style="width:100%"></div>
+    <div class="field"><label>Role</label><select id="uRole" style="width:100%"><option value="caller" ${u.role!=='admin'?'selected':''}>Telecaller</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option></select></div>
+    <div class="field"><label>Status</label><select id="uAct" style="width:100%"><option value="yes" ${u.active!=='no'?'selected':''}>Active</option><option value="no" ${u.active==='no'?'selected':''}>Disabled</option></select></div>
+    <button class="btn pri" onclick="saveUser('${id||''}')">Save</button>
+  </div></div></div>`;
+}
+async function saveUser(id){
+  const user={id:id||'', name:$('#uName').value.trim(), pin:$('#uPin').value.trim(), role:$('#uRole').value, active:$('#uAct').value, email:$('#uEmail').value.trim()};
+  try{
+    await call('saveUser',{user});
+    if(id && S.me && S.users.find(x=>x.id===id).name===S.me.name){ S.cred={name:user.name,pin:user.pin}; S.me.name=user.name; store.set('fpcrm_cred',JSON.stringify(S.cred)); }
+    closeModal(); await load(); toast('Saved ✓');
+  }catch(e){ toast(e.message,true); }
+}
+
+/* ================= boot ================= */
+(async function boot(){
+  const saved = store.get('fpcrm_cred');
+  if(saved){
+    try{ S.cred=JSON.parse(saved); S.me=await call('login'); $('#app').innerHTML='<div class="loading">Loading your leads…</div>'; await load(); }
+    catch(e){ S.cred=null; S.me=null; showLogin(); }
+  } else showLogin();
+  setInterval(()=>{ if(S.me && !S.cur && !$('#modal').innerHTML && document.visibilityState==='visible') load(true); }, 4*60*1000);
+})();
+</script>
+<button id="installBtn" class="hide">Install app</button>
+<script>
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; document.getElementById('installBtn').classList.remove('hide'); });
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (!deferredInstall) return;
+  deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null;
+  document.getElementById('installBtn').classList.add('hide');
+});
+window.addEventListener('appinstalled', () => document.getElementById('installBtn').classList.add('hide'));
+</script>
+</body>
+</html>
