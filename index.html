@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Finance Period CRM</title>
 <style>
 :root{
@@ -178,14 +178,44 @@ input:focus,select:focus,textarea:focus{outline:2px solid #9fd3b6;border-color:v
   .cal .d{min-height:60px}
   .cal .ev .txt{display:none}
 }
-@media (max-width:640px){
-  .topin{flex-wrap:wrap;gap:8px}
-  .tabs{order:3;flex-basis:100%}
-  .brand span{display:none}
+/* bottom tab bar: hidden on desktop, shown on phones */
+.bnav{display:none}
+.listhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mcard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center}
+@media (max-width:700px){
+  .top{padding-top:env(safe-area-inset-top)}
+  .topin{padding:8px 12px;gap:8px}
+  .tabs{display:none}
+  .brand{font-size:15px}
+  .brand span{display:inline}
+  .who .uname{display:none}
+  .iconbtn{padding:7px 10px}
+  .bnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 14px rgba(0,0,0,.05)}
+  .bnav button{flex:1;border:0;background:none;padding:7px 2px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;font-weight:600;color:var(--mut);cursor:pointer}
+  .bnav button.on{color:var(--g)}
+  .bnav button.on svg{background:var(--gl);border-radius:10px}
+  .bnav svg{width:34px;height:24px;padding:2px 7px}
+  main{padding:12px 12px calc(80px + env(safe-area-inset-bottom))}
+  input[type=text],input[type=tel],input[type=email],input[type=password],input[type=date],input[type=time],input[type=url],select,textarea{font-size:16px}
+  h2{font-size:17px}
+  h3{font-size:12px;margin:16px 0 8px}
+  .tiles{grid-template-columns:1fr 1fr;gap:8px}
+  .tile{padding:10px 12px}
+  .tile .n{font-size:22px}
   .hide-m{display:none}
-  main{padding:12px}
   .kv{grid-template-columns:100px 1fr}
   .map{grid-template-columns:1fr}
+  .bar{gap:6px}
+  .bar input[type=text]{flex:1 1 100%}
+  .bar select{flex:1 1 calc(50% - 6px);min-width:0}
+  .lead .r2,.lead .r3{white-space:normal}
+  .callbtn{padding:10px 12px}
+  .dhead{padding-top:calc(14px + env(safe-area-inset-top))}
+  .toast{bottom:calc(84px + env(safe-area-inset-bottom));max-width:90vw;text-align:center}
+  .panel{padding:12px}
+  .hbar{grid-template-columns:110px 1fr 40px}
+  .pager{justify-content:center}
+  .tbl th,.tbl td{padding:8px 7px}
 }
 </style>
 <script>
@@ -202,6 +232,7 @@ window.onerror=function(m,src,l,c){var a=document.getElementById('app');var t='E
 <style>
 #installBtn{position:fixed;right:14px;bottom:14px;z-index:60;background:#0d7a43;color:#fff;border:0;border-radius:24px;padding:11px 18px;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.18);cursor:pointer}
 .logo{background:#fff url(icon-192.png) center/120% no-repeat;color:transparent;border:1px solid #e3e8e5}
+@media (max-width:700px){#installBtn{bottom:calc(84px + env(safe-area-inset-bottom))}}
 </style>
 </head>
 <body>
@@ -229,6 +260,16 @@ const PAGE = 50;
 
 const ICON_PHONE = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>';
 const ICON_WA = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3a.5.5 0 0 0 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.5-.3z"/></svg>';
+
+const NAV_ICONS = {
+  today: '<path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+  leads: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+  dashboard: '<path d="M5 20V12M10 20V6M15 20v-9M20 20V4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>',
+  import: '<path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+  team: '<circle cx="9" cy="8.5" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 19.5c.6-3.2 3-5 6-5s5.4 1.8 6 5M16 5.5a3 3 0 0 1 0 6M18 14.6c1.6.6 2.7 2.2 3 4.9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'
+};
+const isMobile = () => window.matchMedia('(max-width:700px)').matches;
 
 /* ================= state ================= */
 const S = {
@@ -340,13 +381,14 @@ function render(){
   if(isAdmin()) tabs.push(['team','Team']);
   $('#app').innerHTML = `
   <div class="top"><div class="topin">
-    <div class="brand"><div class="logo">FP</div><span>Finance Period CRM</span></div>
+    <div class="brand"><div class="logo">FP</div><span>${isMobile()?'FP CRM':'Finance Period CRM'}</span></div>
     <nav class="tabs">${tabs.map(([k,l])=>`<button class="tab ${S.view===k?'on':''}" onclick="go('${k}')">${l}</button>`).join('')}</nav>
-    <div class="who"><span class="hide-m">${esc(S.me.name)}${isAdmin()?' · admin':''}</span>
+    <div class="who"><span class="uname">${esc(S.me.name)}${isAdmin()?' · admin':''}</span>
       <button class="iconbtn" title="Refresh" onclick="load()">↻</button>
       <button class="iconbtn" onclick="logout()">Log out</button></div>
   </div></div>
-  <main id="view"></main>`;
+  <main id="view"></main>
+  <nav class="bnav">${tabs.map(([k,l])=>`<button class="${S.view===k?'on':''}" onclick="go('${k}')"><svg viewBox="0 0 24 24">${NAV_ICONS[k]||''}</svg>${l}</button>`).join('')}</nav>`;
   ({today:vToday, leads:vLeads, calendar:vCalendar, dashboard:vDash, import:vImport, team:vTeam}[S.view] || vToday)();
 }
 function whoSelect(val, onch, label){
@@ -357,12 +399,37 @@ function whoSelect(val, onch, label){
 }
 function byWho(list, who, key){ key=key||'assigned_to'; if(!who) return list; if(who==='__none') return list.filter(x=>!x[key]); return list.filter(x=>x[key]===who); }
 
+/* ================= tap a tile → see the list ================= */
+S.lists = {};
+function regList(key, title, kind, items){ S.lists[key] = {title, kind, items}; return `showList('${key}')`; }
+function leadsFromActs(arr){ const seen={}, out=[]; arr.slice().sort((a,b)=>b.at.localeCompare(a.at)).forEach(a=>{ if(!seen[a.lead_id] && S.byId[a.lead_id]){ seen[a.lead_id]=1; out.push(S.byId[a.lead_id]); } }); return out; }
+function actRow(a){
+  const l=S.byId[a.lead_id]||{};
+  return `<div class="mini" onclick="openLead('${a.lead_id}',1)">
+    <div class="t" style="width:66px">${esc(dpart(a.at)===today()?fmtT(tpart(a.at)):fmtD(a.at))}</div>
+    <div style="flex:1;min-width:0"><div><b>${esc(l.name||l.phone||'Lead')}</b> ${pill(a.outcome)}</div>
+    <div class="sub" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(l.phone||'')} · ${esc(a.by)}${a.comment?' · '+esc(a.comment):''}</div></div></div>`;
+}
+function showList(key, more){
+  const L=S.lists[key]; if(!L) return;
+  S.listOpen=key; S.listLimit = more ? (S.listLimit||100)+100 : 100;
+  const items=L.items.slice(0,S.listLimit);
+  $('#modal').innerHTML=`<div class="ov" onclick="if(event.target===this)closeList()"><div class="drawer">
+    <div class="dhead"><button class="x" onclick="closeList()">×</button><div style="font-size:18px;font-weight:700">${esc(L.title)}</div><div class="sub">${L.items.length} ${L.kind==='acts'?'calls':'leads'}</div></div>
+    <div class="dbody"><div class="list" style="margin-top:12px">
+      ${items.length ? items.map(x=>L.kind==='acts'?actRow(x):card(x,'',true)).join('') : '<div class="empty">Nothing here</div>'}
+    </div>
+    ${L.items.length>items.length?`<div style="text-align:center;margin-top:12px"><button class="btn" onclick="showList('${key}',1)">Show more (${L.items.length-items.length} left)</button></div>`:''}
+    </div></div></div>`;
+}
+function closeList(){ S.listOpen=null; $('#modal').innerHTML=''; }
+
 /* ================= lead card ================= */
-function card(l, kind){
+function card(l, kind, fromList){
   const fu = l.next_followup ? fmtD(l.next_followup) : '';
   const ap = l.appointment ? fmtD(l.appointment) : '';
   const meta = [l.product, l.city].filter(Boolean).map(esc).join(' · ');
-  return `<div class="lead ${kind||''}" onclick="openLead('${l.id}')">
+  return `<div class="lead ${kind||''}" onclick="openLead('${l.id}'${fromList?',1':''})">
     <div class="body">
       <div class="r1"><span class="nm">${l.name?esc(l.name):'<span style="color:var(--mut);font-weight:600">+ Add name</span>'}</span><span class="badge">${esc(l.source)}</span>${pill(l.status)}</div>
       <div class="r2">${esc(l.phone)}${meta?' · '+meta:''}${(S.lastBy||{})[l.id]?' · last call: '+esc(S.lastBy[l.id].by)+' '+esc(fmtD(S.lastBy[l.id].at)):''}</div>
@@ -407,11 +474,11 @@ function vToday(){
     </div>
     ${targetHtml}
     <div class="tiles">
-      <div class="tile green"><div class="n">${myActs.length}</div><div class="l">Calls done today</div></div>
-      <div class="tile red"><div class="n">${overdue.length}</div><div class="l">Overdue follow-ups</div></div>
-      <div class="tile"><div class="n">${due.length}</div><div class="l">Follow-ups due today</div></div>
-      <div class="tile gold"><div class="n">${appts.length}</div><div class="l">Appointments today</div></div>
-      <div class="tile"><div class="n">${fresh.length}</div><div class="l">Fresh leads to call</div></div>
+      <div class="tile green click" onclick="${regList('t_calls','Calls done today','acts',myActs.slice().sort((a,b)=>b.at.localeCompare(a.at)))}"><div class="n">${myActs.length}</div><div class="l">Calls done today ›</div></div>
+      <div class="tile red click" onclick="${regList('t_over','Overdue follow-ups','leads',overdue)}"><div class="n">${overdue.length}</div><div class="l">Overdue follow-ups ›</div></div>
+      <div class="tile click" onclick="${regList('t_due','Follow-ups due today','leads',due)}"><div class="n">${due.length}</div><div class="l">Follow-ups due today ›</div></div>
+      <div class="tile gold click" onclick="${regList('t_appt','Appointments today','leads',appts)}"><div class="n">${appts.length}</div><div class="l">Appointments today ›</div></div>
+      <div class="tile click" onclick="${regList('t_fresh','Fresh leads to call','leads',fresh)}"><div class="n">${fresh.length}</div><div class="l">Fresh leads to call ›</div></div>
     </div>
     ${appts.length?sec('Appointments today', appts, 'appt'):''}
     ${sec('Overdue follow-ups', overdue, 'overdue')}
@@ -422,7 +489,8 @@ function vToday(){
 }
 
 /* ================= LEAD DRAWER ================= */
-function openLead(id){
+function openLead(id, fromList){
+  S.listBack = fromList ? S.listOpen : null;
   S.cur = id; S.editing = false; S.nameEdit = false; S.waOpen = false;
   const l = S.byId[id];
   S.form = { outcome:'', comment:'', fuDate:'', fuTime:'11:00', apDate: dpart(l.appointment), apTime: tpart(l.appointment)||'11:00', quick:'' };
@@ -433,7 +501,7 @@ function waSent(leadId, tid){
   call('note',{lead_id:leadId, kind:'WhatsApp', comment: tp ? 'Sent: '+tp.title : 'Opened WhatsApp chat'})
     .then(r=>{ S.acts.push(r.act); if(S.cur===leadId){ S.waOpen=false; drawLead(); } }).catch(()=>{});
 }
-function closeLead(){ S.cur=null; $('#modal').innerHTML=''; if(S.me) render(); }
+function closeLead(){ const back=S.listBack; S.cur=null; S.listBack=null; $('#modal').innerHTML=''; if(S.me){ render(); if(back) showList(back); } }
 function drawLead(){
   const l = S.byId[S.cur]; if(!l) return closeLead();
   const f = S.form, det = details(l), hist = actsFor(l.id);
@@ -621,13 +689,14 @@ function vLeads(){
       ${sel('fu',[['overdue','Overdue'],['today','Due today'],['upcoming','Upcoming'],['appt','Has appointment'],['none','No follow-up'],['noname','Name missing']],f.fu,'Any follow-up')}
       ${adm?whoSelect(f.who,"S.lf.who=this.value;S.page=0;vLeads()"):''}
     </div>
-    ${adm?`<div class="bar" style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px">
+    ${adm&&!isMobile()?`<div class="bar" style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px">
       <span><b>${S.sel.size}</b> selected</span>
       <button class="btn sm" onclick="L_selAll()">Select all ${L.length} filtered</button>
       <button class="btn sm" onclick="S.sel.clear();vLeads()">Clear</button>
       <span style="margin-left:auto">Assign to</span>
       <select id="bulkTo"><option value="">— Unassigned —</option>${callers().map(u=>`<option>${esc(u.name)}</option>`).join('')}</select>
       <button class="btn sm pri" onclick="bulkAssign()" ${S.sel.size?'':'disabled'}>Assign</button></div>`:''}
+    ${isMobile() ? `<div class="list">${rows.map(l=>card(l)).join('') || '<div class="empty">No leads match</div>'}</div>` : `
     <div style="overflow-x:auto"><table class="tbl">
       <thead><tr>${adm?`<th><input type="checkbox" ${allOnPage?'checked':''} onclick="L_selPage(this.checked)"></th>`:''}<th>Name</th><th>Phone</th><th class="hide-m">Category</th><th>Status</th><th class="hide-m">Next follow-up</th><th class="hide-m">Last comment</th>${adm?'<th class="hide-m">Telecaller</th>':''}</tr></thead>
       <tbody>${rows.map(l=>`<tr class="rowc" onclick="openLead('${l.id}')">
@@ -641,6 +710,7 @@ function vLeads(){
         ${adm?`<td class="hide-m">${esc(l.assigned_to||'—')}</td>`:''}
       </tr>`).join('') || `<tr><td colspan="8" class="sub" style="text-align:center;padding:20px">No leads match</td></tr>`}</tbody>
     </table></div>
+    `}
     <div class="pager"><button class="btn sm" ${S.page?'':'disabled'} onclick="S.page--;vLeads()">‹ Prev</button> Page ${S.page+1} of ${pages}
       <button class="btn sm" ${S.page<pages-1?'':'disabled'} onclick="S.page++;vLeads()">Next ›</button></div>`;
 }
@@ -730,6 +800,7 @@ function vDash(){
   const dmax=Math.max(1,...days.map(d=>d.n));
   const upAppts=L.filter(l=>l.appointment&&dpart(l.appointment)>=t).sort((a,b)=>a.appointment.localeCompare(b.appointment)).slice(0,8);
   const pct=(a,b)=>b?Math.round(a*100/b)+'%':'—';
+  const PLBL={today:'today',week:'this week',month:'this month',all:'all time'};
   const tile=(n,l,cls,click)=>`<div class="tile ${cls||''} ${click?'click':''}" ${click?`onclick="${click}"`:''}><div class="n">${n}</div><div class="l">${l}</div></div>`;
   $('#view').innerHTML=`
     <div class="bar" style="justify-content:space-between"><h2 style="margin:0">Dashboard</h2>
@@ -737,35 +808,35 @@ function vDash(){
       ${isAdmin()?`<select onchange="S.dash.who=this.value;vDash()"><option value="">All telecallers</option>${callers().map(u=>`<option ${D.who===u.name?'selected':''}>${esc(u.name)}</option>`).join('')}</select>`:''}</div></div>
     <h3 style="margin-top:4px">Pipeline right now</h3>
     <div class="tiles">
-      ${tile(L.length,'Total leads','', "S.lf={q:'',source:'',status:'',who:S.dash.who,fu:''};go('leads')")}
-      ${tile(untouched,'Not called yet','', "S.lf={q:'',source:'',status:'New',who:S.dash.who,fu:''};go('leads')")}
-      ${tile(overdue,'Overdue follow-ups','red', "S.lf={q:'',source:'',status:'',who:S.dash.who,fu:'overdue'};go('leads')")}
-      ${tile(dueT,'Follow-ups due today','', "S.lf={q:'',source:'',status:'',who:S.dash.who,fu:'today'};go('leads')")}
-      ${tile(appt7,'Appointments next 7 days','gold', "go('calendar')")}
+      ${tile(L.length,'Total leads ›','', regList('d_total','All leads','leads',L))}
+      ${tile(untouched,'Not called yet ›','', regList('d_new','Not called yet','leads',L.filter(l=>l.status==='New'&&!(+l.call_count))))}
+      ${tile(overdue,'Overdue follow-ups ›','red', regList('d_over','Overdue follow-ups','leads',open.filter(l=>l.next_followup&&dpart(l.next_followup)<t).sort((a,b)=>a.next_followup.localeCompare(b.next_followup))))}
+      ${tile(dueT,'Follow-ups due today ›','', regList('d_due','Follow-ups due today','leads',open.filter(l=>dpart(l.next_followup)===t)))}
+      ${tile(appt7,'Appointments next 7 days ›','gold', regList('d_appt','Appointments in the next 7 days','leads',L.filter(l=>l.appointment&&dpart(l.appointment)>=t&&dpart(l.appointment)<=addDays(7)).sort((a,b)=>a.appointment.localeCompare(b.appointment))))}
     </div>
     <h3>Calling activity · ${{today:'today',week:'this week',month:'this month',all:'all time'}[D.period]}</h3>
     <div class="tiles">
-      ${tile(A.length,'Calls made','green')}
-      ${tile(pct(connected,A.length),'Connected rate')}
-      ${tile(uniq(A,['Interested']),'Interested leads')}
-      ${tile(uniq(A,['Appointment Fixed']),'Appointments fixed','gold')}
-      ${tile(uniq(A,['Converted']),'Converted','green')}
+      ${tile(A.length,'Calls made ›','green', regList('d_calls','Calls made · '+PLBL[D.period],'acts',A.slice().sort((a,b)=>b.at.localeCompare(a.at))))}
+      ${tile(pct(connected,A.length),'Connected rate ›','', regList('d_conn','Connected calls · '+PLBL[D.period],'acts',A.filter(a=>!NOT_CONNECTED.includes(a.outcome)).sort((a,b)=>b.at.localeCompare(a.at))))}
+      ${tile(uniq(A,['Interested']),'Interested leads ›','', regList('d_int','Interested · '+PLBL[D.period],'leads',leadsFromActs(A.filter(a=>a.outcome==='Interested'))))}
+      ${tile(uniq(A,['Appointment Fixed']),'Appointments fixed ›','gold', regList('d_apf','Appointments fixed · '+PLBL[D.period],'leads',leadsFromActs(A.filter(a=>a.outcome==='Appointment Fixed'))))}
+      ${tile(uniq(A,['Converted']),'Converted ›','green', regList('d_conv','Converted · '+PLBL[D.period],'leads',leadsFromActs(A.filter(a=>a.outcome==='Converted'))))}
     </div>
     <div class="grid2" style="margin-top:14px">
       <div class="panel"><h4>Leads by status</h4>
-        ${STATUSES.filter(s=>sc[s]).map(s=>`<div class="hbar"><span>${s}</span><div class="track"><div class="fill" style="width:${sc[s]*100/smax}%"></div></div><span class="num">${sc[s]}</span></div>`).join('')||'<div class="sub">No leads yet</div>'}
+        ${STATUSES.filter(s=>sc[s]).map(s=>`<div class="hbar" style="cursor:pointer" onclick="${regList('d_st_'+s.replace(/\W/g,''),'Status: '+s,'leads',L.filter(l=>(l.status||'New')===s))}"><span>${s} ›</span><div class="track"><div class="fill" style="width:${sc[s]*100/smax}%"></div></div><span class="num">${sc[s]}</span></div>`).join('')||'<div class="sub">No leads yet</div>'}
       </div>
       <div class="panel"><h4>Calls per day · last 14 days</h4>
         <div class="vbars">${days.map(d=>`<div class="c" title="${d.k}: ${d.n} calls"><div class="val">${d.n||''}</div><div class="b" style="height:${d.n*100/dmax}%"></div><div class="lab">${+d.k.slice(8)}</div></div>`).join('')}</div>
       </div>
     </div>
     <div class="panel" style="margin-top:14px;overflow-x:auto"><h4>By category</h4>
-      <table class="tbl" style="border:0"><thead><tr><th>Category</th><th class="num">Leads</th><th class="num">Called</th><th class="num">Called %</th><th class="num">Interested</th><th class="num">Appointments</th><th class="num">Converted</th></tr></thead>
-      <tbody>${Object.entries(src).sort((a,b)=>b[1].n-a[1].n).map(([k,s])=>`<tr class="rowc" onclick="S.lf={q:'',source:'${esc(k)}',status:'',who:S.dash.who,fu:''};go('leads')"><td><b>${esc(k)}</b></td><td class="num">${s.n}</td><td class="num">${s.called}</td><td class="num">${pct(s.called,s.n)}</td><td class="num">${s.int}</td><td class="num">${s.ap}</td><td class="num">${s.conv}</td></tr>`).join('')||'<tr><td colspan="7" class="sub">No leads yet</td></tr>'}</tbody></table>
+      <table class="tbl" style="border:0"><thead><tr><th>Category</th><th class="num">Leads</th><th class="num">Called</th><th class="num hide-m">Called %</th><th class="num hide-m">Interested</th><th class="num">Appointments</th><th class="num">Converted</th></tr></thead>
+      <tbody>${Object.entries(src).sort((a,b)=>b[1].n-a[1].n).map(([k,s])=>`<tr class="rowc" onclick="S.lf={q:'',source:'${esc(k)}',status:'',who:S.dash.who,fu:''};go('leads')"><td><b>${esc(k)}</b></td><td class="num">${s.n}</td><td class="num">${s.called}</td><td class="num hide-m">${pct(s.called,s.n)}</td><td class="num hide-m">${s.int}</td><td class="num">${s.ap}</td><td class="num">${s.conv}</td></tr>`).join('')||'<tr><td colspan="7" class="sub">No leads yet</td></tr>'}</tbody></table>
     </div>
     <div class="panel" style="margin-top:14px;overflow-x:auto"><h4>🏆 Leaderboard · ${{today:'today',week:'this week',month:'this month',all:'all time'}[D.period]}</h4>
-      <table class="tbl" style="border:0"><thead><tr><th>#</th><th>Telecaller</th><th class="num">Calls</th><th class="num">Connected</th><th class="num">Appointments</th><th class="num">Converted</th><th class="num">Daily target</th><th class="num">Days target hit</th>${isAdmin()?'<th class="num">Overdue</th>':''}</tr></thead>
-      <tbody>${callerRows.map((r,i)=>`<tr><td>${['🥇','🥈','🥉'][i]||i+1}</td><td><b>${esc(r.n)}</b></td><td class="num"><b>${r.calls}</b></td><td class="num">${r.conn}</td><td class="num">${r.ap}</td><td class="num">${r.conv}</td><td class="num">${r.tg||'—'}</td><td class="num">${r.hit==null?'—':r.hit+' / '+r.days}</td>${isAdmin()?`<td class="num" style="${r.od?'color:var(--red);font-weight:700':''}">${r.od}</td>`:''}</tr>`).join('')||'<tr><td colspan="9" class="sub">No calls in this period yet</td></tr>'}</tbody></table>
+      <table class="tbl" style="border:0"><thead><tr><th>#</th><th>Telecaller</th><th class="num">Calls</th><th class="num hide-m">Connected</th><th class="num">Appts</th><th class="num">Conv.</th><th class="num hide-m">Daily target</th><th class="num">Target days</th>${isAdmin()?'<th class="num hide-m">Overdue</th>':''}</tr></thead>
+      <tbody>${callerRows.map((r,i)=>`<tr class="rowc" onclick="${regList('d_lb'+i,r.n+' · calls '+PLBL[D.period],'acts',S.acts.filter(a=>isCall(a)&&a.by===r.n&&dpart(a.at)>=from).sort((a,b)=>b.at.localeCompare(a.at)))}"><td>${['🥇','🥈','🥉'][i]||i+1}</td><td><b>${esc(r.n)}</b></td><td class="num"><b>${r.calls}</b></td><td class="num hide-m">${r.conn}</td><td class="num">${r.ap}</td><td class="num">${r.conv}</td><td class="num hide-m">${r.tg||'—'}</td><td class="num">${r.hit==null?'—':r.hit+' / '+r.days}</td>${isAdmin()?`<td class="num hide-m" style="${r.od?'color:var(--red);font-weight:700':''}">${r.od}</td>`:''}</tr>`).join('')||'<tr><td colspan="9" class="sub">No calls in this period yet</td></tr>'}</tbody></table>
     </div>
     <div class="panel" style="margin-top:14px"><h4>Upcoming appointments</h4>
       ${upAppts.length?upAppts.map(l=>`<div class="mini" onclick="openLead('${l.id}')"><div class="t" style="width:110px">${esc(fmtD(l.appointment))}</div><div style="flex:1"><b>${esc(l.name||l.phone)}</b> <span class="sub">· ${esc(l.phone)} · ${esc(l.source)}${isAdmin()&&l.assigned_to?' · '+esc(l.assigned_to):''}</span></div></div>`).join(''):'<div class="sub">No upcoming appointments</div>'}
@@ -1021,6 +1092,10 @@ async function saveUser(id){
     closeModal(); await load(); toast('Saved ✓');
   }catch(e){ toast(e.message,true); }
 }
+
+/* re-draw when the screen switches between phone and desktop size (rotate, resize) */
+let _wasMobile = isMobile();
+window.addEventListener('resize', ()=>{ clearTimeout(window._rz); window._rz=setTimeout(()=>{ if(isMobile()!==_wasMobile){ _wasMobile=isMobile(); if(S.me && !$('#modal').innerHTML) render(); } }, 200); });
 
 /* ================= boot ================= */
 (async function boot(){
